@@ -9,6 +9,3 @@
 [Z table](https://github.com/maalqurashi/QUA207/blob/main/T%20-%20Table.pdf) \
 [T table](https://github.com/maalqurashi/QUA207/blob/main/T%20-%20Table.pdf)
 
-## Try
-
-<a href="https://github.com/maalqurashi/QUA207/blob/main/T%20-%20Table.pdf" target="_blank">PDF.</a>
