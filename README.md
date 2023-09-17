@@ -6,5 +6,5 @@
 [Chapter 9 PDF](https://github.com/maalqurashi/QUA207/blob/main/Chapter%209.pdf)
 
 ## Tables
-[Z table](https://github.com/maalqurashi/QUA207/blob/main/Z - Table.pdf)
-[T table](https://github.com/maalqurashi/QUA207/blob/main/T - Table.pdf)
+[Z table](https://github.com/maalqurashi/QUA207/blob/main/T%20-%20Table.pdf) \
+[T table](https://github.com/maalqurashi/QUA207/blob/main/T%20-%20Table.pdf)
