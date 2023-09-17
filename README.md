@@ -9,3 +9,6 @@
 [Z table](https://github.com/maalqurashi/QUA207/blob/main/T%20-%20Table.pdf) \
 [T table](https://github.com/maalqurashi/QUA207/blob/main/T%20-%20Table.pdf)
 
+## Try:
+
+[Try](https://maalqurshi.github.io/QUA207/blob/main/T%20-%20Table.pdf)
