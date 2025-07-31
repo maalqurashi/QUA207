@@ -11,5 +11,5 @@
 
 ## Histogram
 
-[Histogram Plotting](https://github.com/maalqurashi/QUA207/blob/main/T%20-%20Table.pdf)
+[Histogram Plotting](https://github.com/maalqurashi/QUA207/blob/main/Histogram.html)
 
