@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Interactive Histogram Plot</title>
+  <!-- Load Plotly.js from CDN -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    #plot {
+      margin-top: 30px;
+    }
+    label {
+      margin-right: 10px;
+    }
+    input[type=number] {
+      width: 60px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Interactive Histogram Plot</h1>
+  <p>Adjust number of bins to see the histogram update dynamically.</p>
+
+  <label for="binsInput">Number of Bins:</label>
+  <input type="number" id="binsInput" min="1" max="50" value="10" />
+
+  <div id="plot"></div>
+
+  <script>
+    // Sample dataset to plot
+    const sampleData = Array.from({length: 500}, () => 
+      Math.round((Math.random() * 100 + Math.random() * 100) / 2)
+    );
+
+    const plotDiv = document.getElementById('plot');
+    const binsInput = document.getElementById('binsInput');
+
+    function drawHistogram(numBins) {
+      const trace = {
+        x: sampleData,
+        type: 'histogram',
+        nbinsx: numBins,
+        marker: {
+          color: 'rgba(100, 150, 250, 0.7)',
+          line: {width: 1, color: 'rgb(0,0,0)'}
+        }
+      };
+
+      const layout = {
+        title: `Histogram with ${numBins} Bins`,
+        xaxis: {title: 'Value'},
+        yaxis: {title: 'Count'},
+        bargap: 0.05
+      };
+
+      Plotly.newPlot(plotDiv, [trace], layout, {responsive: true});
+    }
+
+    // Initial plot with default number of bins
+    drawHistogram(parseInt(binsInput.value));
+
+    // Update plot on input change
+    binsInput.addEventListener('input', () => {
+      const val = parseInt(binsInput.value);
+      if (val >= 1 && val <= 50) {
+        drawHistogram(val);
+      }
+    });
+  </script>
+</body>
+</html>
