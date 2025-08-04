@@ -113,7 +113,7 @@
             <thead>
                 <tr>
                     <th>Class Interval</th>
-                    <th>Frequeny </th>
+                    <th>Frequency</th>
                 </tr>
             </thead>
             <tbody id="dataTableBody">
@@ -440,7 +440,11 @@
             updateTable();
 
             window.addEventListener('resize', resizeCanvas);
-            resizeCanvas(); // Initial call to set up the canvas properly
+
+            // A short delay to ensure all CSS has been applied and elements have their final dimensions
+            setTimeout(() => {
+                resizeCanvas();
+            }, 100);
 
             canvas.addEventListener('mousedown', handleMouseDown);
             canvas.addEventListener('mousemove', handleMouseMove);
