@@ -442,9 +442,7 @@
             window.addEventListener('resize', resizeCanvas);
 
             // A short delay to ensure all CSS has been applied and elements have their final dimensions
-            setTimeout(() => {
-                resizeCanvas();
-            }, 100);
+            resizeCanvas();
 
             canvas.addEventListener('mousedown', handleMouseDown);
             canvas.addEventListener('mousemove', handleMouseMove);
