@@ -434,14 +434,12 @@
         }
 
         // Initial setup and event listeners
-        window.onload = function () {
-            // Generate new data on page load
+        document.addEventListener('DOMContentLoaded', () => {
             histogramData = generateRandomData();
             updateTable();
-
             window.addEventListener('resize', resizeCanvas);
 
-            // A short delay to ensure all CSS has been applied and elements have their final dimensions
+            // Initial call to resize and draw the canvas
             resizeCanvas();
 
             canvas.addEventListener('mousedown', handleMouseDown);
@@ -453,7 +451,10 @@
 
             document.getElementById('checkButton').addEventListener('click', checkWork);
             document.getElementById('resetButton').addEventListener('click', resetHistogram);
-        };
+        });
+
+        // Fallback for window.onload to ensure resizeCanvas is called again
+        window.addEventListener('load', resizeCanvas);
     </script>
 </body>
 </html>
