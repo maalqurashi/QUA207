@@ -1,78 +1,457 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Interactive Histogram Plot</title>
-  <!-- Load Plotly.js from CDN -->
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 0 20px;
-      text-align: center;
-    }
-    #plot {
-      margin-top: 30px;
-    }
-    label {
-      margin-right: 10px;
-    }
-    input[type=number] {
-      width: 60px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Interactive Histogram Plot</h1>
-  <p>Adjust number of bins to see the histogram update dynamically.</p>
-
-  <label for="binsInput">Number of Bins:</label>
-  <input type="number" id="binsInput" min="1" max="50" value="10" />
-
-  <div id="plot"></div>
-
-  <script>
-    // Sample dataset to plot
-    const sampleData = Array.from({length: 500}, () => 
-      Math.round((Math.random() * 100 + Math.random() * 100) / 2)
-    );
-
-    const plotDiv = document.getElementById('plot');
-    const binsInput = document.getElementById('binsInput');
-
-    function drawHistogram(numBins) {
-      const trace = {
-        x: sampleData,
-        type: 'histogram',
-        nbinsx: numBins,
-        marker: {
-          color: 'rgba(100, 150, 250, 0.7)',
-          line: {width: 1, color: 'rgb(0,0,0)'}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Histogram</title>
+    <!-- Tailwind CSS CDN for basic styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
-      };
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+        canvas {
+            background-color: #e2e8f0; /* Lighter blue-gray for canvas */
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            margin-top: 20px;
+            touch-action: none; /* Disable default touch actions like scrolling/zooming */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #4a5568; /* Darker gray for table header */
+            color: #ffffff;
+            font-weight: 600;
+        }
+        td {
+            background-color: #f7fafc; /* Very light gray for table cells */
+        }
+        .message-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none; /* Hidden by default */
+        }
+        .message-box.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message-box.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .button-group button {
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(145deg, #60a5fa, #3b82f6);
+            color: white;
+            border: none;
+        }
+        .button-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #4f8cf4, #3366cc);
+        }
+        .button-group button:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .button-group button#resetButton {
+            background: linear-gradient(145deg, #a0aec0, #718096);
+        }
+        .button-group button#resetButton:hover {
+            background: linear-gradient(145deg, #8b96a9, #5c6776);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-5">
+    <div class="container bg-white rounded-xl shadow-2xl p-8 md:p-10">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4">Interactive Histogram Activity</h1>
+        <p class="text-gray-600 mb-6 text-lg">
+            Drag the top of each histogram bar to match the frequency given in the table below.
+        </p>
 
-      const layout = {
-        title: `Histogram with ${numBins} Bins`,
-        xaxis: {title: 'Value'},
-        yaxis: {title: 'Count'},
-        bargap: 0.05
-      };
+        <h2 class="text-2xl font-semibold text-gray-700 mb-3">Frequency Distribution: Quiz Scores</h2>
+        <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md mb-8">
+            <thead>
+                <tr>
+                    <th>Class Interval</th>
+                    <th>Frequency ($f$)</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <!-- Table rows will be generated dynamically by JavaScript -->
+            </tbody>
+        </table>
 
-      Plotly.newPlot(plotDiv, [trace], layout, {responsive: true});
-    }
+        <canvas id="histogramCanvas" class="w-full h-auto block mx-auto" onselectstart="return false;"></canvas>
 
-    // Initial plot with default number of bins
-    drawHistogram(parseInt(binsInput.value));
+        <div class="message-box" id="messageBox"></div>
 
-    // Update plot on input change
-    binsInput.addEventListener('input', () => {
-      const val = parseInt(binsInput.value);
-      if (val >= 1 && val <= 50) {
-        drawHistogram(val);
-      }
-    });
-  </script>
+        <div class="button-group mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button id="checkButton" class="bg-blue-600 hover:bg-blue-700 text-white">
+                Check My Work
+            </button>
+            <button id="resetButton" class="bg-gray-400 hover:bg-gray-500 text-white">
+                Reset Histogram
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Get the canvas element and its 2D rendering context
+        const canvas = document.getElementById('histogramCanvas');
+        const ctx = canvas.getContext('2d');
+        const messageBox = document.getElementById('messageBox');
+        const dataTableBody = document.getElementById('dataTableBody');
+
+        // Define the histogram data. This will be dynamically generated.
+        let histogramData = [];
+
+        // Global variables for canvas dimensions and padding
+        const padding = { top: 40, right: 40, bottom: 60, left: 60 };
+        let plotAreaWidth;
+        let plotAreaHeight;
+        let barWidth;
+        let maxFrequency;
+        let frequencyScale;
+        const dragLineThickness = 2;
+        const dragTolerance = 10;
+
+        // Dragging state variables
+        let isDragging = false;
+        let draggedBarIndex = 0;
+        let hoveredBarIndex = 0;
+
+        /**
+         * Generates random data for the histogram.
+         * The number of classes is fixed, but the starting point and frequencies are random.
+         */
+        function generateRandomData() {
+            const numberOfClasses = 4;
+            const classWidth = 10;
+            // Randomly select the starting point for the first class limit, between 50 and 70.
+            const firstClassStart = Math.floor(Math.random() * (70 - 50 + 1)) + 50;
+            const newData = [];
+            for (let i = 0; i < numberOfClasses; i++) {
+                const startLimit = firstClassStart + (i * classWidth);
+                const endLimit = startLimit + classWidth;
+                const label = `${startLimit} up to ${endLimit}`;
+                // Random frequency between 1 and 10
+                const correctFrequency = Math.floor(Math.random() * 10) + 1;
+                newData.push({
+                    label: label,
+                    correctFrequency: correctFrequency,
+                    currentFrequency: 0,
+                    status: 'neutral'
+                });
+            }
+            return newData;
+        }
+
+        /**
+         * Populates the HTML table with the generated histogram data.
+         */
+        function updateTable() {
+            dataTableBody.innerHTML = ''; // Clear existing rows
+            histogramData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.label}</td>
+                    <td>${data.correctFrequency}</td>
+                `;
+                dataTableBody.appendChild(row);
+            });
+        }
+
+        // Function to draw the histogram
+        function drawHistogram() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, canvas.height - padding.bottom);
+            ctx.lineTo(canvas.width - padding.right, canvas.height - padding.bottom);
+            ctx.stroke();
+
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, canvas.height - padding.bottom);
+            ctx.stroke();
+
+            // Draw Y-axis labels (Frequency)
+            ctx.fillStyle = '#555';
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= maxFrequency; i += 1) {
+                const y = canvas.height - padding.bottom - (i * frequencyScale);
+                ctx.fillText(i, padding.left - 10, y + 5);
+                // Draw grid lines
+                ctx.beginPath();
+                ctx.strokeStyle = '#ccc';
+                ctx.lineWidth = 0.5;
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(canvas.width - padding.right, y);
+                ctx.stroke();
+            }
+            ctx.save();
+            ctx.translate(padding.left - 45, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Frequency', 0, 0);
+            ctx.restore();
+
+            // Draw X-axis labels (Class Intervals)
+            const xLabels = histogramData.map(d => d.label.split(' ')[0]);
+            xLabels.push(histogramData[histogramData.length - 1].label.split(' ')[2]);
+            ctx.fillStyle = '#555';
+            ctx.font = '14px Inter';
+            for (let i = 0; i < xLabels.length; i++) {
+                const x = padding.left + (i * barWidth);
+                ctx.textAlign = 'center';
+                if (i === 0) {
+                    ctx.textAlign = 'left';
+                } else if (i === histogramData.length) {
+                    ctx.textAlign = 'right';
+                }
+                ctx.fillText(xLabels[i], x, canvas.height - padding.bottom + 25);
+            }
+            ctx.fillText('Quiz Scores', canvas.width / 2, canvas.height - 10);
+
+            // Draw histogram bars and dragging handles
+            histogramData.forEach((data, index) => {
+                const x = padding.left + (index * barWidth);
+                const barHeight = data.currentFrequency * frequencyScale;
+                const y = canvas.height - padding.bottom - barHeight;
+
+                if (data.status === 'correct') {
+                    ctx.fillStyle = '#4CAF50';
+                } else if (data.status === 'incorrect') {
+                    ctx.fillStyle = '#F44336';
+                } else {
+                    ctx.fillStyle = '#6366f1';
+                }
+                ctx.fillRect(x, y, barWidth, barHeight);
+
+                // Draw a distinct line on top of the bar for dragging
+                ctx.strokeStyle = '#0084BD';
+                ctx.lineWidth = (index === hoveredBarIndex) ? 5 : dragLineThickness;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + barWidth, y);
+                ctx.stroke();
+
+                if (data.currentFrequency > 0) {
+                    ctx.fillStyle = '#333';
+                    ctx.font = '14px Inter';
+                    ctx.fillText(data.currentFrequency, x + barWidth / 2, y - 10);
+                }
+            });
+        }
+
+        // Helper to get mouse/touch coordinates relative to canvas,
+        // correctly scaling for a responsive canvas.
+        function getMousePos(event) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        // Event handler for mouse/touch down
+        function handleMouseDown(event) {
+            event.preventDefault();
+            const mousePos = getMousePos(event);
+            
+            histogramData.forEach((data, index) => {
+                const x = padding.left + (index * barWidth);
+                const barHeight = data.currentFrequency * frequencyScale;
+                const yTop = canvas.height - padding.bottom - barHeight;
+                
+                // The drag zone is now larger, determined by the updated dragTolerance
+                if (mousePos.x >= x && mousePos.x <= x + barWidth &&
+                    mousePos.y >= yTop - (dragTolerance / 2) && mousePos.y <= yTop + (dragTolerance / 2)) {
+                    isDragging = true;
+                    draggedBarIndex = index;
+                    canvas.style.cursor = 'ns-resize'; 
+                }
+            });
+        }
+
+        // Event handler for mouse/touch move and cursor change on hover
+        function handleMouseMove(event) {
+            const mousePos = getMousePos(event);
+
+            if (isDragging) {
+                event.preventDefault();
+                const newBarHeight = (canvas.height - padding.bottom) - mousePos.y;
+                let newFrequency = newBarHeight / frequencyScale;
+
+                newFrequency = Math.round(newFrequency);
+                newFrequency = Math.max(0, Math.min(newFrequency, maxFrequency));
+
+                histogramData[draggedBarIndex].currentFrequency = newFrequency;
+                histogramData[draggedBarIndex].status = 'neutral';
+                messageBox.style.display = 'none';
+                drawHistogram();
+            } else {
+                let currentHoveredIndex = -1;
+                histogramData.forEach((data, index) => {
+                    const x = padding.left + (index * barWidth);
+                    const barHeight = data.currentFrequency * frequencyScale;
+                    const yTop = canvas.height - padding.bottom - barHeight;
+                    
+                    // The hover zone is also larger, making it easier to see the resize cursor
+                    if (mousePos.x >= x && mousePos.x <= x + barWidth &&
+                        mousePos.y >= yTop - (dragTolerance / 2) && mousePos.y <= yTop + (dragTolerance / 2)) {
+                        currentHoveredIndex = index;
+                    }
+                });
+
+                if (hoveredBarIndex !== currentHoveredIndex) {
+                    hoveredBarIndex = currentHoveredIndex;
+                    canvas.style.cursor = (hoveredBarIndex !== -1) ? 'ns-resize' : 'default';
+                    drawHistogram();
+                }
+            }
+        }
+
+        // Event handler for mouse/touch up
+        function handleMouseUp() {
+            if (!isDragging) return; 
+            isDragging = false;
+            draggedBarIndex = -1;
+        }
+
+        // Function to check the user's work
+        function checkWork() {
+            let allCorrect = true;
+            histogramData.forEach(data => {
+                if (data.currentFrequency === data.correctFrequency) {
+                    data.status = 'correct';
+                } else {
+                    data.status = 'incorrect';
+                    allCorrect = false;
+                }
+            });
+            drawHistogram();
+
+            if (allCorrect) {
+                showMessage('Congratulations! Your histogram is correct!', 'success');
+            } else {
+                showMessage('Some bars are incorrect. Keep trying!', 'error');
+            }
+        }
+
+        // Function to reset the histogram
+        function resetHistogram() {
+            histogramData.forEach(data => {
+                data.currentFrequency = 0;
+                data.status = 'neutral';
+            });
+            showMessage('', 'neutral');
+            drawHistogram();
+        }
+
+        // Function to display messages
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`;
+            messageBox.style.display = message ? 'block' : 'none';
+        }
+
+        // This function now correctly recalculates all necessary canvas dimensions
+        // and red-draws the histogram.
+        function resizeCanvas() {
+            const containerWidth = canvas.parentElement.clientWidth;
+            const aspectRatio = 700 / 400; // Maintain a 7:4 aspect ratio
+            canvas.width = containerWidth > 900 ? 900 - 60 : containerWidth;
+            canvas.height = canvas.width / aspectRatio;
+
+            // Recalculate all dimensions based on the new canvas size
+            plotAreaWidth = canvas.width - padding.left - padding.right;
+            plotAreaHeight = canvas.height - padding.top - padding.bottom;
+            barWidth = plotAreaWidth / histogramData.length;
+            maxFrequency = Math.max(...histogramData.map(d => d.correctFrequency)) + 2;
+            frequencyScale = plotAreaHeight / maxFrequency;
+
+            drawHistogram();
+        }
+
+        // Initial setup and event listeners
+        window.onload = function () {
+            // Generate new data on page load
+            histogramData = generateRandomData();
+            updateTable();
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas(); // Initial call to set up the canvas properly
+
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('touchstart', handleMouseDown);
+            canvas.addEventListener('touchmove', handleMouseMove);
+            canvas.addEventListener('touchend', handleMouseUp);
+
+            document.getElementById('checkButton').addEventListener('click', checkWork);
+            document.getElementById('resetButton').addEventListener('click', resetHistogram);
+        };
+    </script>
 </body>
 </html>
