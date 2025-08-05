@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Cumulative Frequency Polygon</title>
+    <!-- Tailwind CSS CDN for basic styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsDelivr CDN for Saudi Riyal Font -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@emran-alhaddad/saudi-riyal-font/index.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif; /* Changed font to Arial */
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+        canvas {
+            background-color: #e2e8f0; /* Lighter blue-gray for canvas */
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            margin-top: 20px;
+            touch-action: none; /* Disable default touch actions like scrolling/zooming */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 10px; /* Reduced margin to make space for Q1 */
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #4a5568; /* Darker gray for table header */
+            color: #ffffff;
+            font-weight: 600;
+        }
+        td {
+            background-color: #f7fafc; /* Very light gray for table cells */
+        }
+        .message-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none; /* Hidden by default */
+        }
+        .message-box.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message-box.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .button-group button {
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(145deg, #60a5fa, #3b82f6);
+            color: white;
+            border: none;
+        }
+        .button-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #4f8cf4, #3366cc);
+        }
+        .button-group button:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .button-group button#resetButton {
+            background: linear-gradient(145deg, #a0aec0, #718096);
+        }
+        .button-group button#resetButton:hover {
+            background: linear-gradient(145deg, #8b96a9, #5c6776);
+        }
+        .table-caption {
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #555;
+            white-space: nowrap; /* Ensure caption stays on one line */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis for overflow */
+        }
+        .scenario-text {
+            text-align: left;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+        }
+        .question-text {
+            text-align: left;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+        .answer-feedback {
+            font-weight: normal;
+            margin-left: 15px;
+            margin-top: 5px;
+            font-size: 0.95em;
+        }
+        .text-green-600 { color: #22c55e; } /* Tailwind green-600 */
+        .text-red-600 { color: #ef4444; }   /* Tailwind red-600 */
+        .text-yellow-600 { color: #eab308; } /* Tailwind yellow-600 */
+
+        .question-item {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px !important;
+        }
+        .question-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0 !important;
+        }
+        .options-group {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .options-group div {
+            margin-bottom: 5px;
+        }
+        .check-question-button {
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(145deg, #60a5fa, #3b82f6); /* Matched main button color */
+            color: white;
+            border: none;
+        }
+        .check-question-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #4f8cf4, #3366cc); /* Matched main button hover */
+        }
+        .check-question-button:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        /* The font-family for icon-saudi_riyal is defined in the CDN stylesheet */
+        .icon-saudi_riyal {
+            font-size: inherit;
+            color: inherit;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-5">
+    <div class="container bg-white rounded-xl shadow-2xl p-8 md:p-10">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4">Interactive Cumulative Frequency Polygon Activity</h1>
+        <p class="text-gray-600 mb-6 text-lg">
+            
+        </p>
+
+        <div class="scenario-text">
+            A market research firm conducted a survey on customer satisfaction scores (out of 100) for a new product launch. The scores were grouped into ranges, and the frequency for each range indicates how many customers gave scores within that bracket. Your task is to accurately represent this cumulative data by dragging the points on the polygon.
+        </div>
+
+        <div class="table-caption">
+            Table 1: Frequency Distribution of Customer Satisfaction Scores
+        </div>
+        <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md mb-8">
+            <thead>
+                <tr>
+                    <th>Customer Satisfaction Score</th>
+                    <th>Frequency</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <!-- Table rows will be generated dynamically by JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="question-text">
+            Q1: Drag each point on the cumulative frequency polygon to match the cumulative frequency of the data in Table 1.
+        </div>
+
+        <canvas id="histogramCanvas" class="w-full h-auto block mx-auto" onselectstart="return false;"></canvas>
+
+        <div class="message-box" id="messageBox"></div>
+
+        <div class="button-group mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button id="checkButton" class="bg-blue-600 hover:bg-blue-700 text-white">
+                Check My Work
+            </button>
+            <button id="resetButton" class="bg-gray-400 hover:bg-gray-500 text-white">
+                Reset
+            </button>
+        </div>
+
+        <!-- New Questions Section -->
+        <div class="question-section mt-8 text-left">
+            <div class="question-item">
+                <p class="question-text">Q2: What is the total number of customers surveyed?</p>
+                <div class="options-group" id="q2Options"></div>
+                <button class="check-question-button" data-question="q2">Check Answer</button>
+                <p class="answer-feedback" id="q2Feedback"></p>
+            </div>
+            <div class="question-item">
+                <p class="question-text">Q3: How many customers had a satisfaction score less than <span id="q3Score"></span>?</p>
+                <div class="options-group" id="q3Options"></div>
+                <button class="check-question-button" data-question="q3">Check Answer</button>
+                <p class="answer-feedback" id="q3Feedback"></p>
+            </div>
+            <div class="question-item">
+                <p class="question-text">Q4: How many customers had a satisfaction score of at least <span id="q4Score"></span>?</p>
+                <div class="options-group" id="q4Options"></div>
+                <button class="check-question-button" data-question="q4">Check Answer</button>
+                <p class="answer-feedback" id="q4Feedback"></p>
+            </div>
+            <div class="question-item">
+                <p class="question-text">Q5: What is the percentage of customers with a satisfaction score less than <span id="q5Score"></span>?</p>
+                <div class="options-group" id="q5Options"></div>
+                <button class="check-question-button" data-question="q5">Check Answer</button>
+                <p class="answer-feedback" id="q5Feedback"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get the canvas element and its 2D rendering context
+        const canvas = document.getElementById('histogramCanvas');
+        const ctx = canvas.getContext('2d');
+        const messageBox = document.getElementById('messageBox');
+        const dataTableBody = document.getElementById('dataTableBody');
+
+        // Define the histogram data. This will be dynamically generated.
+        let histogramData = [];
+
+        // Global variables for canvas dimensions and padding
+        const padding = { top: 40, right: 40, bottom: 60, left: 60 };
+        let plotAreaWidth;
+        let plotAreaHeight;
+        let intervalPixelWidth; // Represents the pixel width of one class interval on the plot
+        let maxCumulativeFrequency; // Max value for Y-axis
+        let frequencyScale;
+        const dragTolerance = 15; // Increased tolerance for dragging points
+        const pointRadius = 6; // Radius of the draggable points
+
+        // Dragging state variables
+        let isDragging = false;
+        let draggedPointIndex = -1; // Index in the histogramData array
+        let hoveredPointIndex = -1;
+
+        // Global object to store question data (options, correct answers)
+        let questionsData = {
+            q2: { question: "What is the total number of customers surveyed?", options: [], correctAnswer: 0 },
+            q3: { question: "", options: [], correctAnswer: 0, targetScore: 0 },
+            q4: { question: "", options: [], correctAnswer: 0, targetScore: 0 },
+            q5: { question: "", options: [], correctAnswer: 0, targetScore: 0 }
+        };
+
+        // Helper to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Helper to generate a distractor that is near the correct answer but not equal
+        function generateNumericalDistractor(correctAnswer, range, exclude = []) {
+            let distractor;
+            let attempts = 0;
+            do {
+                distractor = correctAnswer + (Math.random() * range * 2 - range); // +/- range
+                distractor = Math.round(distractor);
+                attempts++;
+                // Ensure distractor is not in exclude list and is non-negative
+                if (attempts > 100) { // Prevent infinite loops
+                    distractor = correctAnswer + (correctAnswer > 0 ? -1 : 1); // Fallback to +/- 1
+                    break;
+                }
+            } while (exclude.includes(distractor) || distractor < 0);
+            return distractor;
+        }
+
+        // Helper to generate a percentage distractor
+        function generatePercentageDistractor(correctAnswer, exclude = []) {
+            let distractor;
+            let attempts = 0;
+            do {
+                distractor = (correctAnswer + (Math.random() * 20 - 10)).toFixed(2); // +/- 10%
+                distractor = parseFloat(distractor);
+                attempts++;
+                if (attempts > 100) { // Prevent infinite loops
+                    distractor = (correctAnswer + (correctAnswer > 0 ? -1 : 1)).toFixed(2); // Fallback to +/- 1
+                    distractor = parseFloat(distractor);
+                    break;
+                }
+            } while (exclude.includes(distractor) || distractor < 0 || distractor > 100);
+            return distractor;
+        }
+
+        /**
+         * Generates random data for the cumulative frequency polygon and prepares question options.
+         */
+        function generateRandomData() {
+            const numberOfClasses = 4;
+            const classWidth = 10;
+            // Scenario change: Customer satisfaction scores (out of 100)
+            const firstClassStart = Math.floor(Math.random() * (60 - 40 + 1)) + 40; // Scores from 40 to 60 as starting point
+            const newData = [];
+
+            // Create a pool of possible unique frequencies (e.g., 1 to 10 for individual frequencies)
+            let possibleFrequencies = Array.from({ length: 10 }, (_, i) => i + 1);
+            shuffleArray(possibleFrequencies);
+
+            let cumulativeSum = 0;
+            for (let i = 0; i < numberOfClasses; i++) {
+                const startLimit = firstClassStart + (i * classWidth);
+                const endLimit = startLimit + classWidth;
+                const label = `${startLimit} up to ${endLimit}`;
+                
+                const correctFrequency = possibleFrequencies.pop(); 
+                cumulativeSum += correctFrequency;
+
+                newData.push({
+                    label: label,
+                    start: startLimit,
+                    end: endLimit,
+                    correctFrequency: correctFrequency, // Individual frequency
+                    correctCumulativeFrequency: cumulativeSum, // Cumulative frequency
+                    currentCumulativeFrequency: 0, // User's current drag value
+                    status: 'neutral'
+                });
+            }
+
+            histogramData = newData;
+            const totalObservations = histogramData[histogramData.length - 1].correctCumulativeFrequency;
+
+
+            // --- Prepare Q2 options (Total Customers) ---
+            questionsData.q2.correctAnswer = totalObservations;
+            questionsData.q2.options = [totalObservations];
+            while (questionsData.q2.options.length < 4) {
+                let distractor = generateNumericalDistractor(totalObservations, 5, questionsData.q2.options);
+                questionsData.q2.options.push(distractor);
+            }
+            questionsData.q2.options = shuffleArray(questionsData.q2.options);
+
+
+            // --- Prepare Q3 options (Less Than X) ---
+            // Choose an upper boundary for the question
+            let q3TargetIndex = Math.floor(Math.random() * (histogramData.length - 1)) + 1; // Exclude first point, ensure at least one point after
+            if (histogramData.length === 1) q3TargetIndex = 0; // Handle single class case
+            
+            const q3TargetScoreVal = histogramData[q3TargetIndex].end;
+            questionsData.q3.targetScore = q3TargetScoreVal;
+            questionsData.q3.question = `How many customers had a satisfaction score less than <span id="q3Score"></span>?`;
+            
+            let q3CorrectAnswer = histogramData[q3TargetIndex].correctCumulativeFrequency;
+            questionsData.q3.correctAnswer = q3CorrectAnswer;
+            questionsData.q3.options = [q3CorrectAnswer];
+            while (questionsData.q3.options.length < 4) {
+                let distractor = generateNumericalDistractor(q3CorrectAnswer, 3, questionsData.q3.options);
+                questionsData.q3.options.push(distractor);
+            }
+            questionsData.q3.options = shuffleArray(questionsData.q3.options);
+
+
+            // --- Prepare Q4 options (At Least X) ---
+            // Choose a lower boundary for the question
+            let q4TargetIndex = Math.floor(Math.random() * (histogramData.length - 1)); // Can be the first class's start
+            const q4TargetScoreVal = histogramData[q4TargetIndex].start;
+            questionsData.q4.targetScore = q4TargetScoreVal;
+            questionsData.q4.question = `How many customers had a satisfaction score of at least <span id="q4Score"></span>?`;
+            
+            let q4CorrectAnswer;
+            if (q4TargetIndex === 0) {
+                q4CorrectAnswer = totalObservations;
+            } else {
+                q4CorrectAnswer = totalObservations - histogramData[q4TargetIndex - 1].correctCumulativeFrequency;
+            }
+            questionsData.q4.correctAnswer = q4CorrectAnswer;
+            questionsData.q4.options = [q4CorrectAnswer];
+            while (questionsData.q4.options.length < 4) {
+                let distractor = generateNumericalDistractor(q4CorrectAnswer, 3, questionsData.q4.options);
+                questionsData.q4.options.push(distractor);
+            }
+            questionsData.q4.options = shuffleArray(questionsData.q4.options);
+
+
+            // --- Prepare Q5 options (Percentage Less Than X) ---
+            // Choose an upper boundary for the question
+            let q5TargetIndex = Math.floor(Math.random() * (histogramData.length - 1)) + 1; // Exclude first point, ensure at least one point after
+            if (histogramData.length === 1) q5TargetIndex = 0; // Handle single class case
+
+            const q5TargetScoreVal = histogramData[q5TargetIndex].end;
+            questionsData.q5.targetScore = q5TargetScoreVal;
+            questionsData.q5.question = `What is the percentage of customers with a satisfaction score less than <span id="q5Score"></span>?`;
+            
+            let q5CorrectAnswerPercentage = (totalObservations > 0) ? parseFloat(((histogramData[q5TargetIndex].correctCumulativeFrequency / totalObservations) * 100).toFixed(2)) : 0;
+            questionsData.q5.correctAnswer = q5CorrectAnswerPercentage;
+            questionsData.q5.options = [q5CorrectAnswerPercentage];
+            while (questionsData.q5.options.length < 4) {
+                let distractor = generatePercentageDistractor(q5CorrectAnswerPercentage, questionsData.q5.options);
+                questionsData.q5.options.push(distractor);
+            }
+            questionsData.q5.options = shuffleArray(questionsData.q5.options);
+
+            return newData;
+        }
+
+        /**
+         * Populates the HTML table with the generated frequency data.
+         */
+        function updateTable() {
+            dataTableBody.innerHTML = ''; // Clear existing rows
+            histogramData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.label}</td>
+                    <td>${data.correctFrequency}</td>
+                `;
+                dataTableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * Draws the cumulative frequency polygon on the canvas.
+         */
+        function drawFrequencyPolygon() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, canvas.height - padding.bottom);
+            ctx.lineTo(canvas.width - padding.right, canvas.height - padding.bottom);
+            ctx.stroke();
+
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, canvas.height - padding.bottom);
+            ctx.stroke();
+
+            // Draw Y-axis labels (Cumulative Frequency)
+            ctx.fillStyle = '#555';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'right';
+            // maxCumulativeFrequency includes a buffer for visual space
+            for (let i = 0; i <= maxCumulativeFrequency; i += 2) { // Increment by 2 for better spacing on Y-axis
+                const y = canvas.height - padding.bottom - (i * frequencyScale);
+                ctx.fillText(i, padding.left - 10, y + 5);
+                // Draw grid lines
+                ctx.beginPath();
+                ctx.strokeStyle = '#ccc';
+                ctx.lineWidth = 0.5;
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(canvas.width - padding.right, y);
+                ctx.stroke();
+            }
+            ctx.save();
+            ctx.translate(padding.left - 45, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Cumulative Frequency', 0, 0);
+            ctx.restore();
+
+            // Draw X-axis labels (Class Boundaries for Ogive)
+            const numClasses = histogramData.length;
+            intervalPixelWidth = plotAreaWidth / numClasses;
+
+            ctx.fillStyle = '#555';
+            ctx.font = '14px Arial';
+
+            // Boundaries for X-axis labels: lower bound of first class, then upper bounds of all classes
+            const xLabels = [histogramData[0].start, ...histogramData.map(d => d.end)];
+
+            xLabels.forEach((value, i) => {
+                const xPosition = padding.left + (i * intervalPixelWidth);
+
+                if (i === 0) {
+                    ctx.textAlign = 'left';
+                } else if (i === xLabels.length - 1) {
+                    ctx.textAlign = 'right';
+                } else {
+                    ctx.textAlign = 'center';
+                }
+                ctx.fillText(value, xPosition, canvas.height - padding.bottom + 25);
+
+                // Add the tick mark
+                ctx.beginPath();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.moveTo(xPosition, canvas.height - padding.bottom);
+                ctx.lineTo(xPosition, canvas.height - padding.bottom + 5);
+                ctx.stroke();
+            });
+            ctx.textAlign = 'center';
+            ctx.font = '14px Arial, sans-serif';
+            ctx.fillText('Customer Satisfaction Score', canvas.width / 2, canvas.height - 10);
+
+
+            // Prepare points for the cumulative frequency polygon (Ogive)
+            const polygonPoints = [];
+
+            // Add initial point at 0 cumulative frequency (at the lower boundary of the first class)
+            polygonPoints.push({
+                x: padding.left, // Lower boundary of the first class
+                y: canvas.height - padding.bottom, // 0 cumulative frequency
+                isVirtual: true
+            });
+
+            histogramData.forEach((data, index) => {
+                // x-coordinate for each point is the upper class boundary
+                const x = padding.left + ((index + 1) * intervalPixelWidth);
+                // y-coordinate is based on currentCumulativeFrequency
+                const y = canvas.height - padding.bottom - (data.currentCumulativeFrequency * frequencyScale);
+                polygonPoints.push({
+                    x: x,
+                    y: y,
+                    dataIndex: index, // Store original data index for dragging
+                    status: data.status // Pass status for coloring points
+                });
+            });
+
+            // Draw the polygon lines
+            ctx.beginPath();
+            ctx.strokeStyle = '#6366f1'; // Polygon line color
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round'; // Smooth corners
+            ctx.moveTo(polygonPoints[0].x, polygonPoints[0].y);
+            polygonPoints.forEach(point => {
+                ctx.lineTo(point.x, point.y);
+            });
+            ctx.stroke();
+
+            // Draw draggable points and their cumulative frequencies
+            polygonPoints.forEach((point, index) => {
+                // Only draw circles for actual data points (those corresponding to upper boundaries)
+                if (!point.isVirtual) {
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, pointRadius, 0, Math.PI * 2);
+
+                    if (point.status === 'correct') {
+                        ctx.fillStyle = '#4CAF50'; // Green for correct
+                    } else if (point.status === 'incorrect') {
+                        ctx.fillStyle = '#F44336'; // Red for incorrect
+                    } else {
+                        ctx.fillStyle = '#0084BD'; // Blue for neutral/draggable
+                    }
+                    
+                    // Highlight hovered point
+                    if (index === hoveredPointIndex) {
+                        ctx.strokeStyle = '#FFD700'; // Gold border for hover
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
+
+                    ctx.fill();
+                    ctx.closePath();
+
+                    // Draw cumulative frequency text above the point
+                    if (histogramData[point.dataIndex].currentCumulativeFrequency > 0) {
+                        ctx.fillStyle = '#333';
+                        ctx.font = '14px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(histogramData[point.dataIndex].currentCumulativeFrequency, point.x, point.y - pointRadius - 5);
+                    }
+                }
+            });
+        }
+
+        // Helper to get mouse/touch coordinates relative to canvas,
+        // correctly scaling for a responsive canvas.
+        function getMousePos(event) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        // Event handler for mouse/touch down
+        function handleMouseDown(event) {
+            event.preventDefault();
+            const mousePos = getMousePos(event);
+            
+            // Check if a point is being dragged
+            // Iterate through actual data points only (index 0 to N-1 of histogramData)
+            histogramData.forEach((data, index) => {
+                // x_point is the upper boundary of the current class
+                const x_point = padding.left + ((index + 1) * intervalPixelWidth);
+                const y_point = canvas.height - padding.bottom - (data.currentCumulativeFrequency * frequencyScale);
+                
+                // Calculate distance from mouse to the center of the point
+                const distance = Math.sqrt(
+                    Math.pow(mousePos.x - x_point, 2) + Math.pow(mousePos.y - y_point, 2)
+                );
+
+                if (distance <= dragTolerance) { // Check if within draggable radius
+                    isDragging = true;
+                    draggedPointIndex = index; // Store index of the actual data point
+                    canvas.style.cursor = 'ns-resize'; 
+                }
+            });
+        }
+
+        // Event handler for mouse/touch move and cursor change on hover
+        function handleMouseMove(event) {
+            const mousePos = getMousePos(event);
+
+            if (isDragging) {
+                event.preventDefault();
+                // Calculate new cumulative frequency based on mouse Y position
+                const newY = Math.max(padding.top, Math.min(mousePos.y, canvas.height - padding.bottom));
+                const newCumulativeFrequency = Math.round((canvas.height - padding.bottom - newY) / frequencyScale);
+
+                // Update current cumulative frequency, clamped between 0 and maxCumulativeFrequency
+                histogramData[draggedPointIndex].currentCumulativeFrequency = Math.max(0, Math.min(newCumulativeFrequency, maxCumulativeFrequency));
+                
+                // Enforce monotonicity: cumulative frequency should not decrease
+                // Adjust previous points if they become greater than the current dragged point
+                for (let i = 0; i < draggedPointIndex; i++) {
+                    if (histogramData[i].currentCumulativeFrequency > histogramData[draggedPointIndex].currentCumulativeFrequency) {
+                        histogramData[i].currentCumulativeFrequency = histogramData[draggedPointIndex].currentCumulativeFrequency;
+                    }
+                }
+                // Adjust subsequent points if they become less than the current dragged point
+                for (let i = draggedPointIndex + 1; i < histogramData.length; i++) {
+                    if (histogramData[i].currentCumulativeFrequency < histogramData[draggedPointIndex].currentCumulativeFrequency) {
+                        histogramData[i].currentCumulativeFrequency = histogramData[draggedPointIndex].currentCumulativeFrequency;
+                    }
+                }
+
+                histogramData[draggedPointIndex].status = 'neutral'; // Reset status on drag
+                messageBox.style.display = 'none';
+                drawFrequencyPolygon();
+            } else {
+                let currentHoveredIndex = -1;
+                histogramData.forEach((data, index) => {
+                    // x_point is the upper boundary of the current class
+                    const x_point = padding.left + ((index + 1) * intervalPixelWidth);
+                    const y_point = canvas.height - padding.bottom - (data.currentCumulativeFrequency * frequencyScale);
+
+                    const distance = Math.sqrt(
+                        Math.pow(mousePos.x - x_point, 2) + Math.pow(mousePos.y - y_point, 2)
+                    );
+                    if (distance <= dragTolerance) {
+                        currentHoveredIndex = index;
+                    }
+                });
+
+                // Update hoveredPointIndex and redraw only if it changed
+                if (hoveredPointIndex !== currentHoveredIndex) {
+                    hoveredPointIndex = currentHoveredIndex;
+                    canvas.style.cursor = (hoveredPointIndex !== -1) ? 'ns-resize' : 'default';
+                    drawFrequencyPolygon(); // Redraw to show hover effect
+                }
+            }
+        }
+
+        // Event handler for mouse/touch up
+        function handleMouseUp() {
+            if (!isDragging) return; 
+            isDragging = false;
+            draggedPointIndex = -1;
+            // No need to reset cursor here, it's handled by mousemove's else block
+        }
+
+        // Function to check the user's work for the cumulative frequency polygon (Q1)
+        function checkFrequencyPolygonWork() {
+            let allCorrect = true;
+            histogramData.forEach(data => {
+                if (data.currentCumulativeFrequency === data.correctCumulativeFrequency) {
+                    data.status = 'correct';
+                } else {
+                    data.status = 'incorrect';
+                    allCorrect = false;
+                }
+            });
+            drawFrequencyPolygon();
+
+            if (allCorrect) {
+                showMessage('Congratulations! Your cumulative frequency polygon is correct!', 'success');
+            } else {
+                showMessage('Some points are incorrect. Keep trying!', 'error');
+            }
+        }
+
+        // Function to render a single multiple-choice question
+        function renderQuestion(questionId) {
+            const questionData = questionsData[questionId];
+            const optionsGroup = document.getElementById(`${questionId}Options`);
+            optionsGroup.innerHTML = ''; // Clear previous options
+
+            questionData.options.forEach((option, index) => {
+                const optionChar = String.fromCharCode(65 + index); // A, B, C, D
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'flex items-center mb-2';
+                optionDiv.innerHTML = `
+                    <input type="radio" id="${questionId}Option${optionChar}" name="${questionId}" value="${option}" class="mr-2">
+                    <label for="${questionId}Option${optionChar}">${optionChar}: ${option}</label>
+                `;
+                optionsGroup.appendChild(optionDiv);
+            });
+
+            // Update question text for dynamic questions
+            if (questionId === 'q3' || questionId === 'q4' || questionId === 'q5') {
+                document.getElementById(`${questionId}Score`).innerHTML = questionData.targetScore;
+            }
+        }
+
+        // Function to check a single multiple-choice question
+        function checkQuestion(questionId) {
+            const questionData = questionsData[questionId];
+            const selectedOption = document.querySelector(`input[name="${questionId}"]:checked`);
+            const feedbackElement = document.getElementById(`${questionId}Feedback`);
+
+            if (!selectedOption) {
+                feedbackElement.textContent = 'Please select an option.';
+                feedbackElement.className = 'answer-feedback text-yellow-600';
+                return;
+            }
+
+            const userAnswer = parseFloat(selectedOption.value); // Parse to float for numerical comparison
+
+            let isCorrect = false;
+            // Use a small tolerance for floating point comparisons (e.g., for percentages)
+            isCorrect = Math.abs(userAnswer - questionData.correctAnswer) < 0.01;
+            
+            if (isCorrect) {
+                feedbackElement.textContent = 'Correct!';
+                feedbackElement.className = 'answer-feedback text-green-600';
+            } else {
+                feedbackElement.textContent = `Incorrect. The correct answer is: ${questionData.correctAnswer}`;
+                feedbackElement.className = 'answer-feedback text-red-600';
+            }
+        }
+
+        // Function to reset the cumulative frequency polygon and questions
+        function resetHistogram() {
+            histogramData = generateRandomData(); // Regenerate data
+            histogramData.forEach(data => {
+                data.currentCumulativeFrequency = 0; // Reset user's current values
+                data.status = 'neutral';
+            });
+            showMessage('', 'neutral');
+            drawFrequencyPolygon();
+            
+            // Clear question feedback and uncheck radio buttons
+            document.querySelectorAll('.answer-feedback').forEach(el => {
+                el.textContent = '';
+                el.className = 'answer-feedback'; // Reset class
+            });
+            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+
+            // Re-render questions with new data
+            renderQuestion('q2');
+            renderQuestion('q3');
+            renderQuestion('q4');
+            renderQuestion('q5');
+        }
+
+        // Function to display messages
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`;
+            messageBox.style.display = message ? 'block' : 'none';
+        }
+
+        // This function now correctly recalculates all necessary canvas dimensions
+        // and red-draws the cumulative frequency polygon.
+        function resizeCanvas() {
+            const containerWidth = canvas.parentElement.clientWidth;
+            const aspectRatio = 700 / 400; // Maintain a 7:4 aspect ratio
+            canvas.width = containerWidth > 900 ? 900 - 60 : containerWidth;
+            canvas.height = canvas.width / aspectRatio;
+
+            // Recalculate all dimensions based on the new canvas size
+            plotAreaWidth = canvas.width - padding.left - padding.right;
+            plotAreaHeight = canvas.height - padding.top - padding.bottom;
+            
+            // Calculate maxCumulativeFrequency for Y-axis scaling
+            // Add a buffer (e.g., 5) to the total observations for better visual spacing
+            maxCumulativeFrequency = histogramData.length > 0 ? histogramData[histogramData.length - 1].correctCumulativeFrequency + 5 : 10;
+            frequencyScale = plotAreaHeight / maxCumulativeFrequency;
+
+            // Calculate interval pixel width based on number of classes
+            const numClasses = histogramData.length;
+            intervalPixelWidth = plotAreaWidth / numClasses;
+
+            drawFrequencyPolygon();
+        }
+
+        // Initial setup and event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            histogramData = generateRandomData(); // Generate data first
+            updateTable(); // Populate table with data
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas(); // Initial call to resize and draw the canvas
+
+            // Render all multiple-choice questions
+            renderQuestion('q2');
+            renderQuestion('q3');
+            renderQuestion('q4');
+            renderQuestion('q5');
+
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('touchstart', handleMouseDown);
+            canvas.addEventListener('touchmove', handleMouseMove);
+            canvas.addEventListener('touchend', handleMouseUp);
+
+            document.getElementById('checkButton').addEventListener('click', checkFrequencyPolygonWork); // Checks cumulative frequency polygon
+            document.getElementById('resetButton').addEventListener('click', resetHistogram);
+
+            // Add event listeners for new "Check Answer" buttons
+            document.querySelectorAll('.check-question-button').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const questionId = event.target.dataset.question;
+                    checkQuestion(questionId);
+                });
+            });
+        });
+
+        // Fallback for window.onload to ensure resizeCanvas is called again
+        window.addEventListener('load', resizeCanvas);
+    </script>
+</body>
+</html>
