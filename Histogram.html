@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: Arial, sans-serif; /* Changed font to Arial */
             background-color: #f0f4f8; /* Light blue-gray background */
             display: flex;
             justify-content: center;
@@ -41,7 +41,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 10px; /* Reduced margin to make space for Q1 */
         }
         th, td {
             border: 1px solid #e2e8f0;
@@ -99,20 +99,96 @@
         .button-group button#resetButton:hover {
             background: linear-gradient(145deg, #8b96a9, #5c6776);
         }
+        .table-caption {
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #555;
+            white-space: nowrap; /* Ensure caption stays on one line */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis for overflow */
+        }
+        .scenario-text {
+            text-align: left;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+        }
+        .question-text {
+            text-align: left;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+        .answer-feedback {
+            font-weight: normal;
+            margin-left: 15px;
+            margin-top: 5px;
+            font-size: 0.95em;
+        }
+        .text-green-600 { color: #22c55e; } /* Tailwind green-600 */
+        .text-red-600 { color: #ef4444; }   /* Tailwind red-600 */
+        .text-yellow-600 { color: #eab308; } /* Tailwind yellow-600 */
+
+        .question-item {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px !important;
+        }
+        .question-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0 !important;
+        }
+        .options-group {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .options-group div {
+            margin-bottom: 5px;
+        }
+        .check-question-button {
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(145deg, #60a5fa, #3b82f6); /* Matched main button color */
+            color: white;
+            border: none;
+        }
+        .check-question-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #4f8cf4, #3366cc); /* Matched main button hover */
+        }
+        .check-question-button:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-5">
     <div class="container bg-white rounded-xl shadow-2xl p-8 md:p-10">
         <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4">Interactive Histogram Activity</h1>
         <p class="text-gray-600 mb-6 text-lg">
-            Drag the top of each histogram bar to match the frequency given in the table below.
+            
         </p>
 
-        <h2 class="text-2xl font-semibold text-gray-700 mb-3">Frequency Distribution: Quiz Scores</h2>
+        <div class="scenario-text">
+            A teacher recorded the quiz scores of her students. The scores are grouped into class intervals, and the frequency for each interval indicates how many students achieved a score within that range. Your task is to accurately represent this data in the histogram below.
+        </div>
+
+        <div class="table-caption">
+            Table 1: Frequency Distribution of Quiz Scores
+        </div>
         <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md mb-8">
             <thead>
                 <tr>
-                    <th>Class Interval</th>
+                    <th>Quiz Scores</th>
                     <th>Frequency</th>
                 </tr>
             </thead>
@@ -121,17 +197,49 @@
             </tbody>
         </table>
 
+        <div class="question-text">
+            Q1: Drag the top of each histogram bar to match the frequency given in the Table 1.
+        </div>
+
         <canvas id="histogramCanvas" class="w-full h-auto block mx-auto" onselectstart="return false;"></canvas>
 
         <div class="message-box" id="messageBox"></div>
 
         <div class="button-group mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <button id="checkButton" class="bg-blue-600 hover:bg-blue-700 text-white">
-                Check My Work
+                Check My Work (Histogram)
             </button>
             <button id="resetButton" class="bg-gray-400 hover:bg-gray-500 text-white">
                 Reset Histogram
             </button>
+        </div>
+
+        <!-- New Questions Section -->
+        <div class="question-section mt-8 text-left">
+            <div class="question-item">
+                <p class="question-text">Q2: Which class interval has the most number of students?</p>
+                <div class="options-group" id="q2Options"></div>
+                <button class="check-question-button" data-question="q2">Check Answer</button>
+                <p class="answer-feedback" id="q2Feedback"></p>
+            </div>
+            <div class="question-item">
+                <p class="question-text">Q3: How many students scored less than <span id="q3Score"></span>?</p>
+                <div class="options-group" id="q3Options"></div>
+                <button class="check-question-button" data-question="q3">Check Answer</button>
+                <p class="answer-feedback" id="q3Feedback"></p>
+            </div>
+            <div class="question-item">
+                <p class="question-text">Q4: How many students scored at least <span id="q4Score"></span>?</p>
+                <div class="options-group" id="q4Options"></div>
+                <button class="check-question-button" data-question="q4">Check Answer</button>
+                <p class="answer-feedback" id="q4Feedback"></p>
+            </div>
+            <div class="question-item">
+                <p class="question-text">Q5: What is the percentage of students in the interval <span id="q5Interval"></span>?</p>
+                <div class="options-group" id="q5Options"></div>
+                <button class="check-question-button" data-question="q5">Check Answer</button>
+                <p class="answer-feedback" id="q5Feedback"></p>
+            </div>
         </div>
     </div>
 
@@ -160,29 +268,188 @@
         let draggedBarIndex = 0;
         let hoveredBarIndex = 0;
 
+        // Global object to store question data (options, correct answers)
+        let questionsData = {
+            q2: { question: "Which class interval has the most number of students?", options: [], correctAnswer: "" },
+            q3: { question: "", options: [], correctAnswer: 0, targetScore: 0 },
+            q4: { question: "", options: [], correctAnswer: 0, targetScore: 0 },
+            q5: { question: "", options: [], correctAnswer: 0, targetIntervalLabel: "" }
+        };
+
+        // Helper to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Helper to generate a distractor that is near the correct answer but not equal
+        function generateNumericalDistractor(correctAnswer, range, exclude = []) {
+            let distractor;
+            let attempts = 0;
+            do {
+                distractor = correctAnswer + (Math.random() * range * 2 - range); // +/- range
+                distractor = Math.round(distractor);
+                attempts++;
+                // Ensure distractor is not in exclude list and is non-negative
+                if (attempts > 100) { // Prevent infinite loops
+                    distractor = correctAnswer + (correctAnswer > 0 ? -1 : 1); // Fallback to +/- 1
+                    break;
+                }
+            } while (exclude.includes(distractor) || distractor < 0);
+            return distractor;
+        }
+
+        // Helper to generate a percentage distractor
+        function generatePercentageDistractor(correctAnswer, exclude = []) {
+            let distractor;
+            let attempts = 0;
+            do {
+                distractor = (correctAnswer + (Math.random() * 20 - 10)).toFixed(2); // +/- 10%
+                distractor = parseFloat(distractor);
+                attempts++;
+                if (attempts > 100) { // Prevent infinite loops
+                    distractor = (correctAnswer + (correctAnswer > 0 ? -1 : 1)).toFixed(2); // Fallback to +/- 1
+                    distractor = parseFloat(distractor);
+                    break;
+                }
+            } while (exclude.includes(distractor) || distractor < 0 || distractor > 100);
+            return distractor;
+        }
+
         /**
-         * Generates random data for the histogram.
-         * The number of classes is fixed, but the starting point and frequencies are random.
+         * Generates random data for the histogram and prepares question options.
          */
         function generateRandomData() {
             const numberOfClasses = 4;
             const classWidth = 10;
-            // Randomly select the starting point for the first class limit, between 50 and 70.
             const firstClassStart = Math.floor(Math.random() * (70 - 50 + 1)) + 50;
             const newData = [];
+
+            // Create a pool of possible unique frequencies (e.g., 1 to 15)
+            let possibleFrequencies = Array.from({ length: 15 }, (_, i) => i + 1);
+            shuffleArray(possibleFrequencies);
+
             for (let i = 0; i < numberOfClasses; i++) {
                 const startLimit = firstClassStart + (i * classWidth);
                 const endLimit = startLimit + classWidth;
                 const label = `${startLimit} up to ${endLimit}`;
-                // Random frequency between 1 and 10
-                const correctFrequency = Math.floor(Math.random() * 10) + 1;
+                
+                // Pick a unique frequency from the shuffled pool
+                const correctFrequency = possibleFrequencies.pop(); // Get and remove the last element
+
                 newData.push({
                     label: label,
+                    start: startLimit,
+                    end: endLimit,
                     correctFrequency: correctFrequency,
                     currentFrequency: 0,
                     status: 'neutral'
                 });
             }
+
+            // Assign newData to histogramData immediately for question generation
+            histogramData = newData;
+
+            // --- Prepare Q2 options ---
+            let maxFreq = -1;
+            let mostStudentsIntervalLabel = '';
+            // Find the interval with the highest frequency
+            histogramData.forEach(data => {
+                if (data.correctFrequency > maxFreq) {
+                    maxFreq = data.correctFrequency;
+                    mostStudentsIntervalLabel = data.label;
+                }
+            });
+            questionsData.q2.correctAnswer = mostStudentsIntervalLabel;
+            questionsData.q2.options = [mostStudentsIntervalLabel]; // Add correct answer first
+            
+            // Collect other interval labels for distractors
+            let distinctDistractors = new Set();
+            histogramData.filter(d => d.label !== mostStudentsIntervalLabel).forEach(d => distinctDistractors.add(d.label));
+
+            // Add distractors until we have 4 options
+            while (questionsData.q2.options.length < 4) {
+                if (distinctDistractors.size > 0) {
+                    const distractorToAdd = distinctDistractors.values().next().value;
+                    questionsData.q2.options.push(distractorToAdd);
+                    distinctDistractors.delete(distractorToAdd); // Remove to avoid duplicates
+                } else {
+                    // Fallback: If not enough distinct intervals, create generic ones
+                    let genericDistractor = `Another interval ${Math.floor(Math.random() * 100)}`;
+                    if (!questionsData.q2.options.includes(genericDistractor)) {
+                        questionsData.q2.options.push(genericDistractor);
+                    }
+                }
+            }
+            questionsData.q2.options = shuffleArray(questionsData.q2.options); // Shuffle the options
+
+
+            // --- Prepare Q3 options ---
+            let validQ3TargetIntervals = histogramData.slice(0, histogramData.length - 1);
+            let q3TargetScoreVal;
+            if (validQ3TargetIntervals.length > 0) {
+                q3TargetScoreVal = validQ3TargetIntervals[Math.floor(Math.random() * validQ3TargetIntervals.length)].end;
+            } else {
+                q3TargetScoreVal = histogramData[0].end;
+            }
+            questionsData.q3.targetScore = q3TargetScoreVal;
+            questionsData.q3.question = `How many students scored less than ${q3TargetScoreVal}?`;
+            let q3CorrectAnswer = 0;
+            histogramData.forEach(data => {
+                if (data.end <= q3TargetScoreVal) {
+                    q3CorrectAnswer += data.correctFrequency;
+                }
+            });
+            questionsData.q3.correctAnswer = q3CorrectAnswer;
+            questionsData.q3.options = [q3CorrectAnswer];
+            while (questionsData.q3.options.length < 4) { // Change to 4 options
+                let distractor = generateNumericalDistractor(q3CorrectAnswer, 3, questionsData.q3.options);
+                questionsData.q3.options.push(distractor);
+            }
+            questionsData.q3.options = shuffleArray(questionsData.q3.options);
+
+            // --- Prepare Q4 options ---
+            let validQ4TargetIntervals = histogramData.slice(1);
+            let q4TargetScoreVal;
+            if (validQ4TargetIntervals.length > 0) {
+                q4TargetScoreVal = validQ4TargetIntervals[Math.floor(Math.random() * validQ4TargetIntervals.length)].start;
+            } else {
+                q4TargetScoreVal = histogramData[0].start;
+            }
+            questionsData.q4.targetScore = q4TargetScoreVal;
+            questionsData.q4.question = `How many students scored at least ${q4TargetScoreVal}?`;
+            let q4CorrectAnswer = 0;
+            histogramData.forEach(data => {
+                if (data.start >= q4TargetScoreVal) {
+                    q4CorrectAnswer += data.correctFrequency;
+                }
+            });
+            questionsData.q4.correctAnswer = q4CorrectAnswer;
+            questionsData.q4.options = [q4CorrectAnswer];
+            while (questionsData.q4.options.length < 4) {
+                let distractor = generateNumericalDistractor(q4CorrectAnswer, 3, questionsData.q4.options);
+                questionsData.q4.options.push(distractor);
+            }
+            questionsData.q4.options = shuffleArray(questionsData.q4.options);
+
+            // --- Prepare Q5 options ---
+            let q5TargetIntervalIndexVal = Math.floor(Math.random() * histogramData.length);
+            questionsData.q5.targetIntervalLabel = histogramData[q5TargetIntervalIndexVal].label;
+            questionsData.q5.question = `What is the percentage of students in the interval ${questionsData.q5.targetIntervalLabel}?`;
+            let totalStudents = histogramData.reduce((sum, data) => sum + data.correctFrequency, 0);
+            let targetIntervalFreq = histogramData[q5TargetIntervalIndexVal].correctFrequency;
+            let q5CorrectAnswerPercentage = (totalStudents > 0) ? parseFloat(((targetIntervalFreq / totalStudents) * 100).toFixed(2)) : 0;
+            questionsData.q5.correctAnswer = q5CorrectAnswerPercentage;
+            questionsData.q5.options = [q5CorrectAnswerPercentage];
+            while (questionsData.q5.options.length < 4) {
+                let distractor = generatePercentageDistractor(q5CorrectAnswerPercentage, questionsData.q5.options);
+                questionsData.q5.options.push(distractor);
+            }
+            questionsData.q5.options = shuffleArray(questionsData.q5.options);
+
             return newData;
         }
 
@@ -223,7 +490,7 @@
 
             // Draw Y-axis labels (Frequency)
             ctx.fillStyle = '#555';
-            ctx.font = '14px Inter';
+            ctx.font = '14px Arial';
             ctx.textAlign = 'right';
             for (let i = 0; i <= maxFrequency; i += 1) {
                 const y = canvas.height - padding.bottom - (i * frequencyScale);
@@ -243,20 +510,32 @@
             ctx.restore();
 
             // Draw X-axis labels (Class Intervals)
-            const xLabels = histogramData.map(d => d.label.split(' ')[0]);
-            xLabels.push(histogramData[histogramData.length - 1].label.split(' ')[2]);
+            const xBoundaries = [];
+            histogramData.forEach(data => {
+                xBoundaries.push(data.start);
+            });
+            xBoundaries.push(histogramData[histogramData.length - 1].end); // Add the last end limit
+
             ctx.fillStyle = '#555';
-            ctx.font = '14px Inter';
-            for (let i = 0; i < xLabels.length; i++) {
-                const x = padding.left + (i * barWidth);
-                ctx.textAlign = 'center';
+            ctx.font = '14px Arial';
+            
+            for (let i = 0; i < xBoundaries.length; i++) {
+                const xPosition = padding.left + (i * barWidth);
+                let labelX = xPosition;
+
+                // Adjust text alignment and position for first and last labels
                 if (i === 0) {
                     ctx.textAlign = 'left';
-                } else if (i === histogramData.length) {
+                    labelX = padding.left;
+                } else if (i === xBoundaries.length - 1) {
                     ctx.textAlign = 'right';
+                    labelX = padding.left + (histogramData.length * barWidth);
+                } else {
+                    ctx.textAlign = 'center';
                 }
-                ctx.fillText(xLabels[i], x, canvas.height - padding.bottom + 25);
+                ctx.fillText(xBoundaries[i], labelX, canvas.height - padding.bottom + 25);
             }
+            ctx.textAlign = 'center'; // Reset for the main X-axis title
             ctx.fillText('Quiz Scores', canvas.width / 2, canvas.height - 10);
 
             // Draw histogram bars and dragging handles
@@ -284,7 +563,7 @@
 
                 if (data.currentFrequency > 0) {
                     ctx.fillStyle = '#333';
-                    ctx.font = '14px Inter';
+                    ctx.font = '14px Arial';
                     ctx.fillText(data.currentFrequency, x + barWidth / 2, y - 10);
                 }
             });
@@ -378,8 +657,8 @@
             draggedBarIndex = -1;
         }
 
-        // Function to check the user's work
-        function checkWork() {
+        // Function to check the user's work for the histogram (Q1)
+        function checkHistogramWork() {
             let allCorrect = true;
             histogramData.forEach(data => {
                 if (data.currentFrequency === data.correctFrequency) {
@@ -398,7 +677,67 @@
             }
         }
 
-        // Function to reset the histogram
+        // Function to render a single multiple-choice question
+        function renderQuestion(questionId) {
+            const questionData = questionsData[questionId];
+            const optionsGroup = document.getElementById(`${questionId}Options`);
+            optionsGroup.innerHTML = ''; // Clear previous options
+
+            questionData.options.forEach((option, index) => {
+                const optionChar = String.fromCharCode(65 + index); // A, B, C, D
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'flex items-center mb-2';
+                optionDiv.innerHTML = `
+                    <input type="radio" id="${questionId}Option${optionChar}" name="${questionId}" value="${option}" class="mr-2">
+                    <label for="${questionId}Option${optionChar}">${optionChar}: ${option}</label>
+                `;
+                optionsGroup.appendChild(optionDiv);
+            });
+
+            // Update question text for dynamic questions
+            if (questionId === 'q3') {
+                document.getElementById('q3Score').textContent = questionData.targetScore;
+            } else if (questionId === 'q4') {
+                document.getElementById('q4Score').textContent = questionData.targetScore;
+            } else if (questionId === 'q5') {
+                document.getElementById('q5Interval').textContent = questionData.targetIntervalLabel;
+            }
+        }
+
+        // Function to check a single multiple-choice question
+        function checkQuestion(questionId) {
+            const questionData = questionsData[questionId];
+            const selectedOption = document.querySelector(`input[name="${questionId}"]:checked`);
+            const feedbackElement = document.getElementById(`${questionId}Feedback`);
+
+            if (!selectedOption) {
+                feedbackElement.textContent = 'Please select an option.';
+                feedbackElement.className = 'answer-feedback text-yellow-600';
+                return;
+            }
+
+            const userAnswer = selectedOption.value; // Get the raw value (string or number as string)
+
+            let isCorrect = false;
+            if (typeof questionData.correctAnswer === 'number') {
+                // For numerical answers, parse the user's answer to a float and compare with tolerance
+                const parsedUserAnswer = parseFloat(userAnswer);
+                isCorrect = Math.abs(parsedUserAnswer - questionData.correctAnswer) < 0.01;
+            } else {
+                // For string answers (like Q2), perform a direct string comparison
+                isCorrect = userAnswer === questionData.correctAnswer;
+            }
+
+            if (isCorrect) {
+                feedbackElement.textContent = 'Correct!';
+                feedbackElement.className = 'answer-feedback text-green-600';
+            } else {
+                feedbackElement.textContent = `Incorrect. The correct answer is: ${questionData.correctAnswer}`;
+                feedbackElement.className = 'answer-feedback text-red-600';
+            }
+        }
+
+        // Function to reset the histogram and questions
         function resetHistogram() {
             histogramData.forEach(data => {
                 data.currentFrequency = 0;
@@ -406,6 +745,21 @@
             });
             showMessage('', 'neutral');
             drawHistogram();
+            
+            // Clear question feedback and uncheck radio buttons
+            document.querySelectorAll('.answer-feedback').forEach(el => {
+                el.textContent = '';
+                el.className = 'answer-feedback'; // Reset class
+            });
+            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+
+            // Re-generate and render questions for new values
+            histogramData = generateRandomData(); // Generate new data for histogram and questions
+            updateTable(); // Update table with new data
+            renderQuestion('q2');
+            renderQuestion('q3');
+            renderQuestion('q4');
+            renderQuestion('q5');
         }
 
         // Function to display messages
@@ -435,12 +789,16 @@
 
         // Initial setup and event listeners
         document.addEventListener('DOMContentLoaded', () => {
-            histogramData = generateRandomData();
-            updateTable();
+            histogramData = generateRandomData(); // Generate data first
+            updateTable(); // Populate table with data
             window.addEventListener('resize', resizeCanvas);
+            resizeCanvas(); // Initial call to resize and draw the canvas
 
-            // Initial call to resize and draw the canvas
-            resizeCanvas();
+            // Render all multiple-choice questions
+            renderQuestion('q2');
+            renderQuestion('q3');
+            renderQuestion('q4');
+            renderQuestion('q5');
 
             canvas.addEventListener('mousedown', handleMouseDown);
             canvas.addEventListener('mousemove', handleMouseMove);
@@ -449,8 +807,16 @@
             canvas.addEventListener('touchmove', handleMouseMove);
             canvas.addEventListener('touchend', handleMouseUp);
 
-            document.getElementById('checkButton').addEventListener('click', checkWork);
+            document.getElementById('checkButton').addEventListener('click', checkHistogramWork); // Only checks histogram
             document.getElementById('resetButton').addEventListener('click', resetHistogram);
+
+            // Add event listeners for new "Check Answer" buttons
+            document.querySelectorAll('.check-question-button').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const questionId = event.target.dataset.question;
+                    checkQuestion(questionId);
+                });
+            });
         });
 
         // Fallback for window.onload to ensure resizeCanvas is called again
