@@ -101,6 +101,9 @@
         .button-group button#resetButton:hover {
             background: linear-gradient(145deg, #8b96a9, #5c6776);
         }
+        .button-group button#resetButton:active {
+            background: linear-gradient(145deg, #718096, #a0aec0);
+        }
         .table-caption {
             margin-top: 10px;
             margin-bottom: 5px;
@@ -248,6 +251,13 @@
                 <button class="check-question-button" data-question="q5">Check Answer</button>
                 <p class="answer-feedback" id="q5Feedback"></p>
             </div>
+            <!-- New Question Q6: Midpoint of a class -->
+            <div class="question-item">
+                <p class="question-text">Q6: What is the midpoint of the sales revenue interval <span id="q6Interval"></span> (in thousands of <span class="icon-saudi_riyal"></span>)?</p>
+                <div class="options-group" id="q6Options"></div>
+                <button class="check-question-button" data-question="q6">Check Answer</button>
+                <p class="answer-feedback" id="q6Feedback"></p>
+            </div>
         </div>
     </div>
 
@@ -281,7 +291,8 @@
             q2: { question: "Which sales revenue range (in thousands of <span class=\"icon-saudi_riyal\"></span>) had the highest frequency of months?", options: [], correctAnswer: "" },
             q3: { question: "", options: [], correctAnswer: 0, targetScore: 0 },
             q4: { question: "", options: [], correctAnswer: 0, targetScore: 0 },
-            q5: { question: "", options: [], correctAnswer: 0, targetIntervalLabel: "" }
+            q5: { question: "", options: [], correctAnswer: 0, targetIntervalLabel: "" },
+            q6: { question: "", options: [], correctAnswer: 0, targetIntervalLabel: "" } // New question for midpoint
         };
 
         // Helper to shuffle an array
@@ -458,6 +469,20 @@
                 questionsData.q5.options.push(distractor);
             }
             questionsData.q5.options = shuffleArray(questionsData.q5.options);
+
+            // --- Prepare Q6 options (Midpoint) ---
+            let q6TargetIntervalIndexVal = Math.floor(Math.random() * histogramData.length);
+            let q6TargetInterval = histogramData[q6TargetIntervalIndexVal];
+            questionsData.q6.targetIntervalLabel = q6TargetInterval.label;
+            questionsData.q6.question = `What is the midpoint of the sales revenue interval ${q6TargetInterval.label} (in thousands of <span class="icon-saudi_riyal"></span>)?`;
+            let q6CorrectAnswer = q6TargetInterval.midpoint;
+            questionsData.q6.correctAnswer = q6CorrectAnswer;
+            questionsData.q6.options = [q6CorrectAnswer];
+            while (questionsData.q6.options.length < 4) {
+                let distractor = generateNumericalDistractor(q6CorrectAnswer, 5, questionsData.q6.options); // +/- 5 for midpoint
+                questionsData.q6.options.push(distractor);
+            }
+            questionsData.q6.options = shuffleArray(questionsData.q6.options);
 
             return newData;
         }
@@ -787,6 +812,8 @@
                 document.getElementById('q4Score').innerHTML = questionData.targetScore;
             } else if (questionId === 'q5') {
                 document.getElementById('q5Interval').innerHTML = questionData.targetIntervalLabel;
+            } else if (questionId === 'q6') { // New condition for Q6
+                document.getElementById('q6Interval').innerHTML = questionData.targetIntervalLabel;
             }
         }
 
@@ -846,6 +873,7 @@
             renderQuestion('q3');
             renderQuestion('q4');
             renderQuestion('q5');
+            renderQuestion('q6'); // Render the new Q6
         }
 
         // Function to display messages
@@ -888,6 +916,7 @@
             renderQuestion('q3');
             renderQuestion('q4');
             renderQuestion('q5');
+            renderQuestion('q6'); // Render the new Q6
 
             canvas.addEventListener('mousedown', handleMouseDown);
             canvas.addEventListener('mousemove', handleMouseMove);
