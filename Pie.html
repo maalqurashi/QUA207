@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Services Pie Chart Quiz</title>
+    <!-- Tailwind CSS CDN for basic styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #4a5568; /* Darker gray for table header */
+            color: #ffffff;
+            font-weight: 600;
+        }
+        td {
+            background-color: #f7fafc; /* Very light gray for table cells */
+        }
+        .message-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none; /* Hidden by default */
+        }
+        .message-box.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message-box.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .button-group button {
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(145deg, #60a5fa, #3b82f6);
+            color: white;
+            border: none;
+        }
+        .button-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #4f8cf4, #3366cc);
+        }
+        .button-group button:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .button-group button#resetButton {
+            background: linear-gradient(145deg, #a0aec0, #718096);
+        }
+        .button-group button#resetButton:hover {
+            background: linear-gradient(145deg, #8b96a9, #5c6776);
+        }
+        .button-group button#resetButton:active {
+            background: linear-gradient(145deg, #718096, #a0aec0);
+        }
+        .question-text {
+            text-align: left;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            /* Changed to 2 columns for larger screens, auto-fit for smaller */
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjusted min width */
+            gap: 20px;
+            margin-top: 20px;
+            justify-items: center;
+        }
+        @media (min-width: 768px) { /* Medium screens and up */
+            .options-grid {
+                grid-template-columns: repeat(2, 1fr); /* Exactly two columns */
+            }
+        }
+        .option-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background-color: #f7fafc;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .option-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+        }
+        .option-item input[type="radio"] {
+            margin-bottom: 10px;
+        }
+        .option-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .answer-feedback {
+            font-weight: normal;
+            margin-top: 15px;
+            font-size: 0.95em;
+        }
+        .text-green-600 { color: #22c55e; } /* Tailwind green-600 */
+        .text-red-600 { color: #ef4444; }   /* Tailwind red-600 */
+        .text-yellow-600 { color: #eab308; } /* Tailwind yellow-600 */
+        .hidden-canvas {
+            display: none; /* Hide canvases used for drawing charts */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-5">
+    <div class="container bg-white rounded-xl shadow-2xl p-8 md:p-10">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4">Pie Chart Activity</h1>
+        <div class="scenario-text text-left mb-6">
+            <p>The hospital management team conducted a survey to assess the frequency of visits to different departments: Emergency, Physical Therapy, Surgery, Radiology, and the Intensive Care Unit (ICU).</p>
+        </div>
+
+        <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
+            <caption>Table 1: Frequency Distribution of Hospital Service Visits</caption>
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <!-- Table rows will be generated dynamically by JavaScript -->
+            </tbody>
+        </table>
+
+        <p class="question-text">Q1: Based on Table 1 below, which pie chart correctly represents the distribution of visits?</p>
+
+        <div class="options-grid" id="pieChartOptions">
+            <!-- Pie chart options will be generated dynamically by JavaScript -->
+        </div>
+
+        <div class="message-box" id="messageBox"></div>
+
+        <div class="button-group mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button id="checkAnswerButton" class="bg-blue-600 hover:bg-blue-700 text-white">
+                Check Answer
+            </button>
+            <button id="resetQuestionButton" class="bg-gray-400 hover:bg-gray-500 text-white">
+                Reset Question
+            </button>
+        </div>
+
+        <!-- Hidden canvases for drawing pie charts -->
+        <canvas id="correctPieChartCanvas" class="hidden-canvas" width="600" height="600"></canvas>
+        <canvas id="distractorBPieChartCanvas" class="hidden-canvas" width="600" height="600"></canvas>
+        <canvas id="distractorCPieChartCanvas" class="hidden-canvas" width="600" height="600"></canvas>
+        <canvas id="distractorDPieChartCanvas" class="hidden-canvas" width="600" height="600"></canvas>
+
+    </div>
+
+    <script>
+        /**
+         * Helper to shuffle an array in place (Fisher-Yates algorithm).
+         * @param {Array} array - The array to shuffle.
+         * @returns {Array} The shuffled array.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        const dataTableBody = document.getElementById('dataTableBody');
+        const pieChartOptionsDiv = document.getElementById('pieChartOptions');
+        const messageBox = document.getElementById('messageBox');
+        const checkAnswerButton = document.getElementById('checkAnswerButton');
+        const resetQuestionButton = document.getElementById('resetQuestionButton');
+
+        const serviceCategories = ['Emergency', 'Physical Therapy', 'Surgery', 'Radiology', 'Intensive Care Unit'];
+        const pieChartColors = ["#008DC3", "#00BFFF", "#87CEFA", "#ADD8E6", "#B0E0E6"]; // Colors for pie slices
+        const totalVisits = 150; // Total number of data points
+
+        let currentCorrectAnswerIndex = 0; // Stores the index of the correct pie chart option
+
+        /**
+         * Generates random hospital service visit data.
+         * @returns {Map<string, number>} A Map where keys are service categories and values are their counts.
+         */
+        function generateHospitalData() {
+            const counts = new Map();
+            serviceCategories.forEach(category => counts.set(category, 0));
+
+            for (let i = 0; i < totalVisits; i++) {
+                const randomCategory = serviceCategories[Math.floor(Math.random() * serviceCategories.length)];
+                counts.set(randomCategory, counts.get(randomCategory) + 1);
+            }
+            return counts;
+        }
+
+        /**
+         * Populates the HTML table with the given service counts.
+         * @param {Map<string, number>} counts - A Map of service categories to their counts.
+         */
+        function updateServiceTable(counts) {
+            dataTableBody.innerHTML = ''; // Clear existing rows
+            counts.forEach((count, category) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${category}</td>
+                    <td>${count}</td>
+                `;
+                dataTableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * Draws a pie chart on the specified canvas.
+         * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+         * @param {Map<string, number>} counts - A Map of service categories to their counts.
+         * @param {string[]} labels - Array of labels for each slice.
+         * @param {string[]} colors - Array of colors for each slice.
+         * @param {string} title - The title of the pie chart. (Can be empty string for no title)
+         */
+        function drawPieChart(canvas, counts, labels, colors, title) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) * 0.7; // 70% of the smallest dimension
+
+            let total = 0;
+            counts.forEach(count => total += count);
+
+            let currentAngle = 0;
+
+            // Draw pie slices
+            let sliceIndex = 0;
+            counts.forEach((count, label) => {
+                const sliceAngle = (count / total) * 2 * Math.PI;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[sliceIndex % colors.length];
+                ctx.fill();
+
+                // Draw percentage text
+                const midAngle = currentAngle + sliceAngle / 2;
+                const textX = centerX + radius * 0.8 * Math.cos(midAngle);
+                const textY = centerY + radius * 0.8 * Math.sin(midAngle);
+                
+                ctx.fillStyle = '#fff'; // White text for percentages
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                if (total > 0) {
+                    ctx.fillText(`${((count / total) * 100).toFixed(1)}%`, textX, textY);
+                }
+
+                currentAngle += sliceAngle;
+                sliceIndex++;
+            });
+
+            // Draw labels outside the pie
+            currentAngle = 0; // Reset angle for labels
+            sliceIndex = 0;
+            counts.forEach((count, label) => {
+                const sliceAngle = (count / total) * 2 * Math.PI;
+                const midAngle = currentAngle + sliceAngle / 2;
+                const labelRadius = radius * 1.1; // Position labels further out
+
+                const labelX = centerX + labelRadius * Math.cos(midAngle);
+                const labelY = centerY + labelRadius * Math.sin(midAngle);
+
+                ctx.fillStyle = '#333'; // Darker text for labels
+                ctx.font = '14px Arial';
+                ctx.textAlign = (labelX > centerX) ? 'left' : 'right';
+                ctx.textBaseline = (labelY > centerY) ? 'top' : 'bottom';
+                
+                ctx.fillText(label, labelX, labelY);
+
+                currentAngle += sliceAngle;
+                sliceIndex++;
+            });
+
+            // Draw title if provided
+            if (title) {
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(title, centerX, 20);
+            }
+        }
+
+        /**
+         * Creates a distractor data set by swapping two random frequencies.
+         * @param {Map<string, number>} originalCounts - The original data counts.
+         * @returns {Map<string, number>} A new Map with swapped frequencies.
+         */
+        function createSwappedDistractor(originalCounts) {
+            const newCounts = new Map(originalCounts);
+            const categories = Array.from(newCounts.keys());
+            if (categories.length < 2) return originalCounts; // Not enough categories to swap
+
+            let idx1 = Math.floor(Math.random() * categories.length);
+            let idx2;
+            do {
+                idx2 = Math.floor(Math.random() * categories.length);
+            } while (idx1 === idx2);
+
+            const cat1 = categories[idx1];
+            const cat2 = categories[idx2];
+
+            const val1 = newCounts.get(cat1);
+            const val2 = newCounts.get(cat2);
+
+            newCounts.set(cat1, val2);
+            newCounts.set(cat2, val1);
+            return newCounts;
+        }
+
+        /**
+         * Creates a distractor data set by slightly altering frequencies.
+         * @param {Map<string, number>} originalCounts - The original data counts.
+         * @returns {Map<string, number>} A new Map with slightly altered frequencies.
+         */
+        function createAlteredDistractor(originalCounts) {
+            const newCounts = new Map(originalCounts);
+            const categories = Array.from(newCounts.keys());
+            if (categories.length < 2) return originalCounts;
+
+            // Pick two random categories to alter
+            let idx1 = Math.floor(Math.random() * categories.length);
+            let idx2;
+            do {
+                idx2 = Math.floor(Math.random() * categories.length);
+            } while (idx1 === idx2);
+
+            const cat1 = categories[idx1];
+            const cat2 = categories[idx2];
+
+            let val1 = newCounts.get(cat1);
+            let val2 = newCounts.get(cat2);
+
+            // Determine an adjustment amount (e.g., +/- 1 to 5)
+            const adjustment = Math.floor(Math.random() * 5) + 1; // 1 to 5
+            const sign = Math.random() < 0.5 ? 1 : -1;
+
+            // Apply adjustment, ensuring counts don't go below zero
+            if (val1 - adjustment >= 0) {
+                newCounts.set(cat1, val1 - adjustment);
+                newCounts.set(cat2, val2 + adjustment);
+            } else if (val2 - adjustment >= 0) {
+                newCounts.set(cat1, val1 + adjustment);
+                newCounts.set(cat2, val2 - adjustment);
+            } else {
+                // If both are too low, just swap them as a fallback
+                newCounts.set(cat1, val2);
+                newCounts.set(cat2, val1);
+            }
+            return newCounts;
+        }
+
+        /**
+         * Generates all pie charts (correct and distractors) and populates the MCQ options.
+         */
+        function generatePieChartsAndMCQ() {
+            const correctCounts = generateHospitalData();
+            updateServiceTable(correctCounts);
+
+            const pieChartsData = []; // Array to hold {canvasId, counts, title} for drawing
+            const optionImages = []; // Array to hold {imgSrc, isCorrect} for MCQ
+
+            // Correct Chart
+            pieChartsData.push({
+                canvasId: 'correctPieChartCanvas',
+                counts: correctCounts,
+                title: '' // No title for options
+            });
+
+            // Distractor 1 (Swapped)
+            pieChartsData.push({
+                canvasId: 'distractorBPieChartCanvas',
+                counts: createSwappedDistractor(correctCounts),
+                title: '' // No title for options
+            });
+
+            // Distractor 2 (Altered)
+            pieChartsData.push({
+                canvasId: 'distractorCPieChartCanvas',
+                counts: createAlteredDistractor(correctCounts),
+                title: '' // No title for options
+            });
+
+            // Distractor 3 (Another Swapped/Altered)
+            pieChartsData.push({
+                canvasId: 'distractorDPieChartCanvas',
+                counts: createSwappedDistractor(createAlteredDistractor(correctCounts)), // Combine two methods for more variation
+                title: '' // No title for options
+            });
+
+            // Draw all charts on their respective hidden canvases and get data URLs
+            pieChartsData.forEach(item => {
+                const canvas = document.getElementById(item.canvasId);
+                drawPieChart(canvas, item.counts, Array.from(item.counts.keys()), pieChartColors, item.title);
+                optionImages.push({
+                    imgSrc: canvas.toDataURL('image/png'),
+                    isCorrect: (item.canvasId === 'correctPieChartCanvas')
+                });
+            });
+
+            // Shuffle the options and store the correct answer index
+            shuffleArray(optionImages);
+            currentCorrectAnswerIndex = optionImages.findIndex(option => option.isCorrect);
+
+            // Populate the MCQ options in the HTML
+            pieChartOptionsDiv.innerHTML = ''; // Clear previous options
+            optionImages.forEach((option, index) => {
+                const optionChar = String.fromCharCode(65 + index); // A, B, C, D
+                const optionItem = document.createElement('label');
+                optionItem.className = 'option-item';
+                optionItem.innerHTML = `
+                    <input type="radio" name="pieChartOption" value="${index}" class="mb-2">
+                    <span>${optionChar}:</span>
+                    <img src="${option.imgSrc}" alt="Pie Chart Option ${optionChar}" width="400" height="400">
+                `;
+                pieChartOptionsDiv.appendChild(optionItem);
+
+                // Add event listener to the label for easier selection
+                optionItem.addEventListener('click', () => {
+                    optionItem.querySelector('input[type="radio"]').checked = true;
+                });
+            });
+        }
+
+        /**
+         * Displays a message in the message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success', 'error', or 'neutral'.
+         */
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`;
+            messageBox.style.display = message ? 'block' : 'none';
+        }
+
+        /**
+         * Checks the user's selected answer for the MCQ.
+         */
+        function checkMCQAnswer() {
+            const selectedOption = document.querySelector('input[name="pieChartOption"]:checked');
+            if (!selectedOption) {
+                showMessage('Please select an option before checking!', 'yellow-600');
+                return;
+            }
+
+            const userAnswerIndex = parseInt(selectedOption.value, 10);
+
+            if (userAnswerIndex === currentCorrectAnswerIndex) {
+                showMessage('Well done! That\'s the correct graph! 🎉', 'success');
+            } else {
+                showMessage('Incorrect. Please try again. 🤔', 'error');
+            }
+        }
+
+        /**
+         * Resets the question, generating new data and charts.
+         */
+        function resetQuestion() {
+            showMessage('', 'neutral'); // Clear feedback
+            document.querySelectorAll('input[name="pieChartOption"]').forEach(radio => radio.checked = false); // Uncheck all radios
+            generatePieChartsAndMCQ(); // Generate new question
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            generatePieChartsAndMCQ(); // Initial question generation
+            checkAnswerButton.addEventListener('click', checkMCQAnswer);
+            resetQuestionButton.addEventListener('click', resetQuestion);
+        });
+    </script>
+</body>
+</html>
