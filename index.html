@@ -36,10 +36,23 @@
                 Chapter 2 Practice
             </h1>
 
-            <!-- Changed to flexbox for horizontal layout on medium screens and up -->
-            <div class="flex flex-col md:flex-row md:space-x-8 gap-8">
+            <!-- Changed to grid for responsive column layout -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- New Box: Bar Chart - Moved to first position -->
+                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-ksu-grey mb-4">Bar Chart</h2>
+                        <p class="text-lg text-black mb-6">
+                            Represent categorical data with bar charts.
+                        </p>
+                    </div>
+                    <a href="bar.html" class="inline-block bg-ksu-grey hover:bg-ksu-grey-dark text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-ksu-grey-alpha">
+                        Start
+                    </a>
+                </div>
+
                 <!-- Box 1: Histogram -->
-                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 flex-1 justify-between">
+                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 justify-between">
                     <div>
                         <h2 class="text-3xl font-bold text-ksu-blue mb-4">Histogram</h2>
                         <p class="text-lg text-black mb-6">
@@ -52,7 +65,7 @@
                 </div>
 
                 <!-- Box 2: Polygon -->
-                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 flex-1 justify-between">
+                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 justify-between">
                     <div>
                         <h2 class="text-3xl font-bold text-ksu-grey mb-4">Frequency Polygon</h2>
                         <p class="text-lg text-black mb-6">
@@ -65,7 +78,7 @@
                 </div>
 
                 <!-- Box 3: Cumulative Polygon -->
-                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 flex-1 justify-between">
+                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 justify-between">
                     <div>
                         <h2 class="text-3xl font-bold text-ksu-blue mb-4">Cumulative Frequency Polygon</h2>
                         <p class="text-lg text-black mb-6">
