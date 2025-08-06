@@ -9,52 +9,70 @@
     <style>
         /* Custom font for a clean look */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light gray background */
+            font-family: 'Arial', sans-serif; /* Changed font to Arial */
+            background-color: #E3E0D2; /* KSU Cream */
+            color: #000000; /* Black for general text */
         }
         /* Ensure the main container takes full viewport height for centering */
         .full-height-center {
             min-height: 100vh;
         }
+        /* Custom colors for Tailwind classes not directly available */
+        .text-ksu-blue { color: #008DC3; }
+        .bg-ksu-blue { background-color: #008DC3; }
+        .hover\:bg-ksu-blue-dark:hover { background-color: #007AB0; } /* Slightly darker blue for hover */
+        .focus\:ring-ksu-blue-alpha:focus { --tw-ring-color: rgba(0, 141, 195, 0.5); } /* KSU Blue with transparency for focus ring */
+
+        .text-ksu-grey { color: #748995; }
+        .bg-ksu-grey { background-color: #748995; }
+        .hover\:bg-ksu-grey-dark:hover { background-color: #627581; } /* Slightly darker grey for hover */
+        .focus\:ring-ksu-grey-alpha:focus { --tw-ring-color: rgba(116, 137, 149, 0.5); } /* KSU Grey with transparency for focus ring */
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="text-black">
     <div class="full-height-center flex items-center justify-center p-4">
         <div class="container mx-auto max-w-4xl">
-            <h1 class="text-5xl font-extrabold text-center text-blue-800 mb-12 drop-shadow-lg">
+            <h1 class="text-5xl font-extrabold text-center text-ksu-blue mb-12 drop-shadow-lg">
                 Chapter 2 Practice
             </h1>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Changed to flexbox for horizontal layout on medium screens and up -->
+            <div class="flex flex-col md:flex-row md:space-x-8 gap-8">
                 <!-- Box 1: Histogram -->
-                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2">
-                    <h2 class="text-3xl font-bold text-indigo-700 mb-4">Histogram</h2>
-                    <p class="text-lg text-gray-600 mb-6">
-                        Visualize frequacny distribution using histograms.
-                    </p>
-                    <a href="Histogram.html" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 flex-1 justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-ksu-blue mb-4">Histogram</h2>
+                        <p class="text-lg text-black mb-6">
+                            Visualize frequency distribution using histograms.
+                        </p>
+                    </div>
+                    <a href="Histogram.html" class="inline-block bg-ksu-blue hover:bg-ksu-blue-dark text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-ksu-blue-alpha">
                         Start
                     </a>
                 </div>
 
                 <!-- Box 2: Polygon -->
-                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2">
-                    <h2 class="text-3xl font-bold text-green-700 mb-4">Frequancy Polygon</h2>
-                    <p class="text-lg text-gray-600 mb-6">
-                        Visualize frequacny distribution using frequency polygons.
-                    </p>
-                    <a href="Poly.html" class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50">
+                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 flex-1 justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-ksu-grey mb-4">Frequency Polygon</h2>
+                        <p class="text-lg text-black mb-6">
+                            Visualize frequency distribution using frequency polygons.
+                        </p>
+                    </div>
+                    <a href="Poly.html" class="inline-block bg-ksu-grey hover:bg-ksu-grey-dark text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-ksu-grey-alpha">
                         Start
                     </a>
                 </div>
 
                 <!-- Box 3: Cumulative Polygon -->
-                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2">
-                    <h2 class="text-3xl font-bold text-purple-700 mb-4">Cumulative Frquancy Polygon</h2>
-                    <p class="text-lg text-gray-600 mb-6">
-                        Visualize cumulative frequency distribution using cumulative frequency polygons.
-                    </p>
-                    <a href="CumPoly.html" class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50">
+                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2 flex-1 justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-ksu-blue mb-4">Cumulative Frequency Polygon</h2>
+                        <p class="text-lg text-black mb-6">
+                            Visualize cumulative frequency distribution using cumulative frequency polygons.
+                        </p>
+                    </div>
+                    <a href="CumPoly.html" class="inline-block bg-ksu-blue hover:bg-ksu-blue-dark text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-ksu-blue-alpha">
                         Start
                     </a>
                 </div>
