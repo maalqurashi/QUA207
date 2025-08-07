@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Bar Chart Activity</title>
+    <!-- Tailwind CSS CDN for basic styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsDelivr CDN for Saudi Riyal Font (kept for consistency, though not used for numbers) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@emran-alhaddad/saudi-riyal-font/index.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+        .chart-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 300px; /* Fixed height for the chart area */
+            background-color: #e2e8f0;
+            border-radius: 10px;
+            border-left: 1px solid #cbd5e1; /* Stronger Y-axis line */
+            border-bottom: 1px solid #cbd5e1; /* Stronger X-axis line */
+            border-top: 1px solid #cbd5e1; /* Lighter top border */
+            border-right: 1px solid #cbd5e1; /* Lighter right border */
+            margin-top: 20px;
+            padding: 20px 30px 60px 80px; /* Adjusted bottom padding for labels & title */
+            position: relative;
+        }
+        .bar-chart-bars {
+            display: flex;
+            align-items: flex-end;
+            height: 100%;
+            width: 100%;
+            gap: 10px; /* Space between bars */
+            position: relative; /* Needed for z-index of grid lines */
+            z-index: 1; /* Bars on top of grid lines */
+        }
+        .bar {
+            width: 100%; /* Will be overridden by flex-basis */
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            transition: height 0.3s ease-out, background-color 0.3s ease-out, border-top-color 0.3s ease-out; /* Smooth transitions */
+            cursor: ns-resize; /* Indicate draggable */
+            border-top: 3px solid; /* Line segment at the top */
+        }
+        .bar-label {
+            position: absolute;
+            top: -20px; /* Position above the bar */
+            color: #333;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .x-axis-labels {
+            position: absolute;
+            bottom: 20px; /* Reduced space from X-axis */
+            left: 80px; /* Align with chart area padding */
+            right: 30px; /* Align with chart area padding */
+            display: flex;
+            justify-content: space-around;
+            width: calc(100% - 110px); /* Adjust width based on padding */
+            font-size: 14px;
+            color: #555;
+            padding-top: 10px;
+            text-align: center;
+        }
+        .x-axis-label-item {
+            flex: 1;
+            text-align: center;
+            /* Allow text to wrap to multiple lines */
+        }
+        .y-axis-labels {
+            position: absolute;
+            left: 0;
+            /* top: 0; // Removed as height and bottom will control vertical positioning */
+            /* bottom: 60px; // Will be set by JS to chartContainerPaddingBottom */
+            width: 80px; /* Increased width for y-axis labels */
+            display: flex;
+            flex-direction: column-reverse; /* To align 0 at bottom, max at top */
+            justify-content: space-between;
+            padding: 0 15px 0 0; /* No vertical padding, only right padding for text */
+            color: #555;
+            font-size: 14px;
+            text-align: right;
+        }
+        .y-axis-label-item {
+            height: auto; /* Allow items to define their own height */
+            line-height: 1; /* Adjust line height for better spacing */
+            padding-right: 5px; /* Added padding to push numbers from axis */
+        }
+        .y-axis-title {
+            position: absolute;
+            left: 40px; /* Center of the 80px padding */
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(-90deg); /* This is the key change */
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .x-axis-title {
+            position: absolute;
+            bottom: 0px; /* Position at the very bottom of the chart-container's padding */
+            left: 50%;
+            transform: translateX(-50%); /* Only horizontal centering */
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #4a5568;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        td {
+            background-color: #f7fafc;
+        }
+        .message-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+        .message-box.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message-box.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .button-group {
+            margin-top: 50px; /* Increased margin to push buttons down */
+            display: flex;
+            flex-direction: column;
+            sm:flex-row;
+            justify-content: center;
+            space-y-4;
+            sm:space-y-0;
+            sm:space-x-4;
+        }
+        .button-group button {
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(145deg, #60a5fa, #3b82f6);
+            color: white;
+            border: none;
+        }
+        .button-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #4f8cf4, #3366cc);
+        }
+        .button-group button:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .button-group button#resetButton {
+            background: linear-gradient(145deg, #a0aec0, #718096);
+        }
+        .button-group button#resetButton:hover {
+            background: linear-gradient(145deg, #8b96a9, #5c6776);
+        }
+        .button-group button:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .table-caption {
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .scenario-text {
+            text-align: left;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+        }
+        .question-text {
+            text-align: left;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+        .answer-feedback {
+            font-weight: normal;
+            margin-left: 15px;
+            margin-top: 5px;
+            font-size: 0.95em;
+        }
+        .text-green-600 { color: #22c55e; }
+        .text-red-600 { color: #ef4444; }
+        .text-yellow-600 { color: #eab308; }
+
+        .question-item {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px !important;
+        }
+        .question-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0 !important;
+        }
+        .options-group {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .options-group div {
+            margin-bottom: 5px;
+        }
+        .check-question-button {
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(145deg, #60a5fa, #3b82f6);
+            color: white;
+            border: none;
+        }
+        .check-question-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #4f8cf4, #3366cc);
+        }
+        .check-question-button:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .icon-saudi_riyal {
+            font-size: inherit;
+            color: inherit;
+            font-weight: bold;
+        }
+        .grid-line {
+            position: absolute;
+            left: 80px; /* Align with actual chart area */
+            right: 30px; /* Align with actual chart area */
+            height: 1px;
+            background-color: #cbd5e1; /* Light gray for grid lines */
+            z-index: 0; /* Ensure grid lines are behind bars */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-5">
+    <div class="container bg-white rounded-xl shadow-2xl p-8 md:p-10">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4">Interactive Bar Chart Activity</h1>
+        <p class="text-gray-600 mb-6 text-lg">
+            
+        </p>
+
+        <div id="scenarioText" class="scenario-text">
+            
+        </div>
+
+        <div id="tableCaption" class="table-caption">
+            
+        </div>
+        <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md mb-8">
+            <thead>
+                <tr>
+                    <th id="tableHeaderCategory"></th>
+                    <th id="tableHeaderFrequency">Frequency</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <!-- Table rows will be generated dynamically by JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="question-text">
+            Q1: Drag the top of each bar to match the frequency given in the table.
+        </div>
+
+        <div class="chart-container">
+            <div id="yAxisTitle" class="y-axis-title"></div>
+            <div class="y-axis-labels" id="yAxisLabels"></div>
+            <div class="bar-chart-bars" id="barChartBars">
+                <!-- Bars will be generated dynamically by JavaScript -->
+            </div>
+            <div class="x-axis-labels" id="xAxisLabels">
+                <!-- X-axis labels will be generated dynamically by JavaScript -->
+            </div>
+            <div id="xAxisTitle" class="x-axis-title"></div>
+        </div>
+        <div id="loadingIndicator" class="text-gray-500 mt-4 text-center" style="display: none;">
+            Generating new scenario...
+        </div>
+
+        <div class="message-box" id="messageBox"></div>
+
+        <div class="button-group mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button id="checkButton" class="bg-blue-600 hover:bg-blue-700 text-white">
+                Check My Work
+            </button>
+            <button id="resetButton" class="bg-gray-400 hover:bg-gray-500 text-white">
+                Reset
+            </button>
+        </div>
+
+        <!-- Questions Section -->
+        <div class="question-section mt-8 text-left">
+            <div class="question-item">
+                <p class="question-text" id="q2Question"></p>
+                <div class="options-group" id="q2Options"></div>
+                <button class="check-question-button" data-question="q2">Check Answer</button>
+                <p class="answer-feedback" id="q2Feedback"></p>
+            </div>
+            <div class="question-item">
+                <p class="question-text" id="q3Question"></p>
+                <div class="options-group" id="q3Options"></div>
+                <button class="check-question-button" data-question="q3">Check Answer</button>
+                <p class="answer-feedback" id="q3Feedback"></p>
+            </div>
+            <div class="question-item">
+                <p class="question-text" id="q4Question"></p>
+                <div class="options-group" id="q4Options"></div>
+                <button class="check-question-button" data-question="q4">Check Answer</button>
+                <p class="answer-feedback" id="q4Feedback"></p>
+            </div>
+            <div class="question-item">
+                <p class="question-text" id="q5Question"></p>
+                <div class="options-group" id="q5Options"></div>
+                <button class="check-question-button" data-question="q5">Check Answer</button>
+                <p class="answer-feedback" id="q5Feedback"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dataTableBody = document.getElementById('dataTableBody');
+        const barChartBarsContainer = document.getElementById('barChartBars');
+        const xAxisLabelsContainer = document.getElementById('xAxisLabels');
+        const yAxisLabelsContainer = document.getElementById('yAxisLabels');
+        const messageBox = document.getElementById('messageBox');
+        const scenarioTextElement = document.getElementById('scenarioText');
+        const tableCaptionElement = document.getElementById('tableCaption');
+        const tableHeaderCategoryElement = document.getElementById('tableHeaderCategory');
+        const yAxisTitleElement = document.getElementById('yAxisTitle');
+        const xAxisTitleElement = document.getElementById('xAxisTitle');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        let histogramData = [];
+        let maxFrequency; // Max individual frequency for Y-axis scaling
+        let categories = []; // Will be randomized
+        let questionWording = {
+            categoryName: "",
+            scenarioPrefix: "",
+            tableCaption: "",
+            xAxisTitle: "",
+            yAxisTitle: ""
+        };
+
+        let questionsData = {
+            q2: { question: "", options: [], correctAnswer: 0 },
+            q3: { question: "", options: [], correctAnswer: 0, targetCategories: [] },
+            q4: { question: "", options: [], correctAnswer: "" },
+            q5: { question: "", options: [], correctAnswer: 0, targetCategories: [] }
+        };
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateNumericalDistractor(correctAnswer, range, exclude = []) {
+            let distractor;
+            let attempts = 0;
+            do {
+                distractor = correctAnswer + (Math.random() * range * 2 - range);
+                distractor = Math.round(distractor);
+                attempts++;
+                if (attempts > 100) {
+                    distractor = correctAnswer + (correctAnswer > 0 ? -1 : 1);
+                    break;
+                }
+            } while (exclude.includes(distractor) || distractor < 0);
+            return distractor;
+        }
+
+        function generatePercentageDistractor(correctAnswer, exclude = []) {
+            let distractor;
+            let attempts = 0;
+            do {
+                distractor = (correctAnswer + (Math.random() * 20 - 10)).toFixed(2);
+                distractor = parseFloat(distractor);
+                attempts++;
+                if (attempts > 100) {
+                    distractor = (correctAnswer + (correctAnswer > 0 ? -1 : 1)).toFixed(2);
+                    distractor = parseFloat(distractor);
+                    break;
+                }
+            } while (exclude.includes(distractor) || distractor < 0 || distractor > 100);
+            return distractor;
+        }
+
+        async function getLLMWording() {
+            const prompt = `Generate a JSON object for a bar chart activity tailored for first-year business students at King Saud University. The scenario should be a few sentences long, using a relatable Saudi Arabian business context (e.g., consumer behavior, retail, or a local startup). Use simple and clear language. **DO NOT mention the total number of items or a specific sample size in the scenario.** The JSON should contain five qualitative categories, a detailed scenario prefix, a descriptive table caption, a category name for the x-axis, and a frequency name for the y-axis. The output must be a valid JSON object with the following structure:
+            {
+                "categories": ["Category A", "Category B", "Category C", "Category D", "Category E"],
+                "scenarioPrefix": "A short, engaging sentence for the activity scenario.",
+                "tableCaption": "A descriptive table caption.",
+                "xAxisTitle": "X-Axis Label",
+                "yAxisTitle": "Y-Axis Label",
+                "categoryName": "Category Name for the table header"
+            }`;
+
+            const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = {
+                contents: chatHistory,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "categories": { "type": "ARRAY", "items": { "type": "STRING" } },
+                            "scenarioPrefix": { "type": "STRING" },
+                            "tableCaption": { "type": "STRING" },
+                            "xAxisTitle": { "type": "STRING" },
+                            "yAxisTitle": { "type": "STRING" },
+                            "categoryName": { "type": "STRING" }
+                        }
+                    }
+                }
+            };
+            
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            let response = null;
+            let result = null;
+            let retryDelay = 1000;
+            const maxRetries = 5;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 429) {
+                        console.warn(`API call failed with status 429. Retrying in ${retryDelay}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, retryDelay));
+                        retryDelay *= 2;
+                        continue;
+                    }
+
+                    result = await response.json();
+                    break;
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    return null;
+                }
+            }
+            
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                const json = result.candidates[0].content.parts[0].text;
+                try {
+                    const parsedJson = JSON.parse(json);
+                    return parsedJson;
+                } catch (e) {
+                    console.error("Failed to parse JSON from LLM:", e);
+                    return null;
+                }
+            } else {
+                console.error("LLM response was malformed:", result);
+                return null;
+            }
+        }
+
+
+        /**
+         * Generates random qualitative categories and associated wording.
+         */
+        async function generateRandomCategoriesAndWording() {
+            loadingIndicator.style.display = 'block';
+
+            let llmWording = await getLLMWording();
+            if (!llmWording) {
+                console.warn("Using fallback wording due to LLM failure.");
+                llmWording = {
+                    categories: ["Very Poor", "Poor", "Average", "Good", "Excellent"],
+                    categoryName: "Feedback Category",
+                    scenarioPrefix: "A company is analyzing customer feedback for their product. The data below shows the frequency of responses for each category.",
+                    tableCaption: "Frequency Distribution of Customer Feedback Categories",
+                    xAxisTitle: "Feedback Category",
+                    yAxisTitle: "Frequency"
+                };
+            }
+
+            categories = llmWording.categories;
+            questionWording.categoryName = llmWording.categoryName;
+            questionWording.scenarioPrefix = llmWording.scenarioPrefix;
+            questionWording.tableCaption = `Table 1: ${llmWording.tableCaption}`; // PREPEND "Table 1:"
+            questionWording.xAxisTitle = llmWording.xAxisTitle;
+            questionWording.yAxisTitle = llmWording.yAxisTitle;
+
+            // Set the dynamic wording in the HTML
+            scenarioTextElement.textContent = questionWording.scenarioPrefix;
+            tableCaptionElement.textContent = questionWording.tableCaption;
+            tableHeaderCategoryElement.textContent = questionWording.categoryName;
+            yAxisTitleElement.textContent = questionWording.yAxisTitle;
+            xAxisTitleElement.textContent = questionWording.xAxisTitle;
+            loadingIndicator.style.display = 'none';
+        }
+
+        /**
+         * Generates random data for the bar chart and prepares question options.
+         */
+        async function generateRandomData() {
+            await generateRandomCategoriesAndWording(); // Generate new categories and wording first
+            const newData = [];
+            const fixedCategories = [...categories]; 
+
+            let possibleFrequencies = Array.from({ length: 10 }, (_, i) => i + 1); // Frequencies from 1 to 10
+            shuffleArray(possibleFrequencies);
+
+            for (let i = 0; i < fixedCategories.length; i++) {
+                const category = fixedCategories[i];
+                const frequency = possibleFrequencies.pop(); 
+
+                newData.push({
+                    category: category,
+                    frequency: frequency, // Correct frequency
+                    currentFrequency: 0, // User's draggable frequency
+                    status: 'neutral'
+                });
+            }
+
+            histogramData = newData; // Store the generated data
+            
+            // Calculate total observations for questions
+            const totalObservations = histogramData.reduce((sum, data) => sum + data.frequency, 0);
+            maxFrequency = Math.max(...histogramData.map(d => d.frequency)) + 2; // +2 for buffer on Y-axis
+
+            // --- Prepare Q2 options (Total Customers) ---
+            questionsData.q2.correctAnswer = totalObservations;
+            questionsData.q2.options = [totalObservations];
+            while (questionsData.q2.options.length < 4) {
+                let distractor = generateNumericalDistractor(totalObservations, 5, questionsData.q2.options);
+                questionsData.q2.options.push(distractor);
+            }
+            questionsData.q2.options = shuffleArray(questionsData.q2.options);
+
+
+            // --- Prepare Q3 options (Sum of specific categories) ---
+            let q3TargetCategories = [];
+            let q3CorrectAnswer = 0;
+            const shuffledIndicesForQ3 = shuffleArray(Array.from(Array(fixedCategories.length).keys()));
+            q3TargetCategories.push(fixedCategories[shuffledIndicesForQ3[0]]);
+            q3TargetCategories.push(fixedCategories[shuffledIndicesForQ3[1]]);
+            
+            histogramData.forEach(data => {
+                if (q3TargetCategories.includes(data.category)) {
+                    q3CorrectAnswer += data.frequency;
+                }
+            });
+
+            questionsData.q3.targetCategories = q3TargetCategories;
+            questionsData.q3.correctAnswer = q3CorrectAnswer;
+            questionsData.q3.options = [q3CorrectAnswer];
+            while (questionsData.q3.options.length < 4) {
+                let distractor = generateNumericalDistractor(q3CorrectAnswer, 3, questionsData.q3.options);
+                questionsData.q3.options.push(distractor);
+            }
+            questionsData.q3.options = shuffleArray(questionsData.q3.options);
+
+
+            // --- Prepare Q4 options (Category with most responses) ---
+            let maxFreqVal = -1;
+            let mostResponsesCategory = '';
+            histogramData.forEach(data => {
+                if (data.frequency > maxFreqVal) {
+                    maxFreqVal = data.frequency;
+                    mostResponsesCategory = data.category;
+                }
+            });
+            questionsData.q4.correctAnswer = mostResponsesCategory;
+            questionsData.q4.options = [mostResponsesCategory];
+            
+            let distinctDistractorsQ4 = new Set();
+            histogramData.filter(d => d.category !== mostResponsesCategory).forEach(d => distinctDistractorsQ4.add(d.category));
+            while (questionsData.q4.options.length < 4) {
+                if (distinctDistractorsQ4.size > 0) {
+                    const distractorToAdd = distinctDistractorsQ4.values().next().value;
+                    questionsData.q4.options.push(distractorToAdd);
+                    distinctDistractorsQ4.delete(distractorToAdd);
+                } else {
+                    let genericDistractor = `Category ${Math.floor(Math.random() * 100)}`;
+                    if (!questionsData.q4.options.includes(genericDistractor)) {
+                        questionsData.q4.options.push(genericDistractor);
+                    }
+                }
+            }
+            questionsData.q4.options = shuffleArray(questionsData.q4.options);
+
+
+            // --- Prepare Q5 options (Percentage of specific categories) ---
+            let q5TargetCategories = [];
+            let q5CombinedFreq = 0;
+            const availableForQ5 = fixedCategories.filter(c => !q3TargetCategories.includes(c));
+            const shuffledIndicesForQ5 = shuffleArray(Array.from(Array(availableForQ5.length).keys()));
+            
+            if (shuffledIndicesForQ5.length >= 2) {
+                q5TargetCategories.push(availableForQ5[shuffledIndicesForQ5[0]]);
+                q5TargetCategories.push(availableForQ5[shuffledIndicesForQ5[1]]);
+            } else if (availableForQ5.length === 1) {
+                q5TargetCategories.push(availableForQ5[0]);
+            } else { // Fallback if no distinct categories left
+                q5TargetCategories.push(fixedCategories[0]);
+                if (fixedCategories.length > 1) q5TargetCategories.push(fixedCategories[1]);
+            }
+            
+            histogramData.forEach(data => {
+                if (q5TargetCategories.includes(data.category)) {
+                    q5CombinedFreq += data.frequency;
+                }
+            });
+
+            let q5CorrectAnswerPercentage = (totalObservations > 0) ? parseFloat(((q5CombinedFreq / totalObservations) * 100).toFixed(2)) : 0;
+            questionsData.q5.targetCategories = q5TargetCategories;
+            questionsData.q5.correctAnswer = q5CorrectAnswerPercentage;
+            questionsData.q5.options = [q5CorrectAnswerPercentage];
+            while (questionsData.q5.options.length < 4) {
+                let distractor = generatePercentageDistractor(q5CorrectAnswerPercentage, questionsData.q5.options);
+                questionsData.q5.options.push(distractor);
+            }
+            questionsData.q5.options = shuffleArray(questionsData.q5.options);
+
+            // Update the question text with the new wording
+            document.getElementById('q2Question').textContent = `Q2: What is the total number of ${questionWording.yAxisTitle.toLowerCase()}?`;
+            document.getElementById('q3Question').innerHTML = `Q3: How many items are rated as <span id="q3Categories"></span>?`;
+            document.getElementById('q4Question').textContent = `Q4: Which ${questionWording.categoryName.toLowerCase()} received the most responses?`;
+            document.getElementById('q5Question').innerHTML = `Q5: What percentage of items were rated as <span id="q5Categories"></span>?`;
+
+            return newData;
+        }
+
+        /**
+         * Populates the HTML table with the generated frequency data.
+         */
+        function updateTable() {
+            dataTableBody.innerHTML = '';
+            histogramData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.category}</td>
+                    <td>${data.frequency}</td>
+                `;
+                dataTableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * Draws the bar chart.
+         */
+        function drawBarChart() {
+            // Clear existing grid lines before redrawing
+            document.querySelectorAll('.grid-line').forEach(line => line.remove());
+
+            barChartBarsContainer.innerHTML = ''; // Clear existing bars
+            xAxisLabelsContainer.innerHTML = ''; // Clear existing x-axis labels
+            yAxisLabelsContainer.innerHTML = ''; // Clear existing y-axis labels
+
+            const chartContainerElement = document.querySelector('.chart-container');
+            const chartContainerHeight = chartContainerElement.clientHeight; // Total height of chart-container
+            const chartContainerPaddingBottom = parseFloat(getComputedStyle(chartContainerElement).paddingBottom);
+            const chartContainerPaddingTop = parseFloat(getComputedStyle(chartContainerElement).paddingTop);
+
+            // The actual plotting height for the bars, excluding top/bottom padding of chart-container
+            const plotAreaHeight = chartContainerHeight - chartContainerPaddingTop - chartContainerPaddingBottom;
+            const scaleFactor = plotAreaHeight / maxFrequency;
+
+            // Draw horizontal grid lines
+            for (let i = 0; i <= maxFrequency; i += 1) { // Increment by 1 for finer grid
+                const gridLine = document.createElement('div');
+                gridLine.className = 'grid-line';
+                // Calculate position relative to the bottom of the *plot area* and then add chart-container's bottom padding
+                const yPosFromPlotAreaBottom = i * scaleFactor;
+                gridLine.style.bottom = `${chartContainerPaddingBottom + yPosFromPlotAreaBottom}px`;
+                barChartBarsContainer.parentElement.insertBefore(gridLine, barChartBarsContainer); // Insert into chart-container
+            }
+
+
+            // Draw bars in the randomized order of `histogramData`
+            histogramData.forEach((data, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${data.currentFrequency * scaleFactor}px`; // Use currentFrequency for drawing
+                bar.style.flexBasis = `${100 / histogramData.length}%`; // Distribute width evenly
+
+                // Add data attributes for dragging
+                bar.dataset.index = index; // Store original index for dragging
+                bar.dataset.category = data.category;
+
+                const barLabel = document.createElement('span');
+                barLabel.className = 'bar-label';
+                barLabel.textContent = data.currentFrequency; // Display current frequency
+                bar.appendChild(barLabel);
+
+                // Add status class for coloring after check
+                if (data.status === 'correct') {
+                    bar.style.backgroundColor = '#4CAF50'; // Green
+                    bar.style.borderTopColor = '#388E3C'; /* Darker green for border */
+                } else if (data.status === 'incorrect') {
+                    bar.style.backgroundColor = '#F44336'; // Red
+                    bar.style.borderTopColor = '#D32F2F'; /* Darker red for border */
+                } else {
+                    bar.style.backgroundColor = '#6366f1'; // Default blue
+                    bar.style.borderTopColor = '#4F46E5'; /* Darker blue for border */
+                }
+
+                barChartBarsContainer.appendChild(bar);
+
+                const xLabel = document.createElement('div');
+                xLabel.className = 'x-axis-label-item';
+                xLabel.textContent = data.category;
+                xAxisLabelsContainer.appendChild(xLabel);
+            });
+
+            // Draw Y-axis labels
+            yAxisLabelsContainer.style.height = `${plotAreaHeight}px`;
+            yAxisLabelsContainer.style.bottom = `${chartContainerPaddingBottom}px`;
+
+            for (let i = 0; i <= maxFrequency; i += 1) { // Increment by 1 for finer labels
+                const yLabel = document.createElement('div');
+                yLabel.className = 'y-axis-label-item';
+                yLabel.textContent = i;
+                yAxisLabelsContainer.appendChild(yLabel);
+            }
+        }
+
+        // Helper to get mouse/touch coordinates relative to canvas/container
+        function getMousePos(event) {
+            const rect = barChartBarsContainer.getBoundingClientRect(); // Get rect of the bar container
+            let clientX, clientY;
+
+            if (event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        // Event handlers for bar dragging
+        let isDraggingBar = false;
+        let draggedBarIndex = -1;
+
+        function handleBarMouseDown(event) {
+            event.preventDefault();
+            const mousePos = getMousePos(event);
+            const bars = barChartBarsContainer.children; // Get the actual bar elements
+
+            for (let i = 0; i < bars.length; i++) {
+                const barRect = bars[i].getBoundingClientRect();
+                const containerRect = barChartBarsContainer.getBoundingClientRect();
+
+                const relativeMouseX = mousePos.x;
+                const relativeMouseY = mousePos.y;
+
+                if (relativeMouseX >= (barRect.left - containerRect.left) &&
+                    relativeMouseX <= (barRect.right - containerRect.left) &&
+                    relativeMouseY >= (barRect.top - containerRect.top - 15) &&
+                    relativeMouseY <= (barRect.top - containerRect.top + 15)) {
+                    
+                    isDraggingBar = true;
+                    draggedBarIndex = i;
+                    barChartBarsContainer.style.cursor = 'ns-resize';
+                    break;
+                }
+            }
+        }
+
+        function handleBarMouseMove(event) {
+            if (!isDraggingBar) return;
+            event.preventDefault();
+            const mousePos = getMousePos(event);
+            
+            const chartContainerElement = document.querySelector('.chart-container');
+            const chartContainerHeight = chartContainerElement.clientHeight;
+            const chartContainerPaddingTop = parseFloat(getComputedStyle(chartContainerElement).paddingTop);
+            const chartContainerPaddingBottom = parseFloat(getComputedStyle(chartContainerElement).paddingBottom);
+            const plotAreaHeight = chartContainerHeight - chartContainerPaddingTop - chartContainerPaddingBottom;
+
+            const mouseYRelativeToPlotTop = mousePos.y;
+            let newFrequency = Math.round((plotAreaHeight - mouseYRelativeToPlotTop) / (plotAreaHeight / maxFrequency));
+            
+            newFrequency = Math.max(0, Math.min(newFrequency, maxFrequency));
+
+            histogramData[draggedBarIndex].currentFrequency = newFrequency;
+            histogramData[draggedBarIndex].status = 'neutral'; // Reset status on drag
+            messageBox.style.display = 'none';
+            drawBarChart(); // Redraw the chart to reflect changes
+        }
+
+        function handleBarMouseUp() {
+            isDraggingBar = false;
+            draggedBarIndex = -1;
+            barChartBarsContainer.style.cursor = 'default';
+        }
+
+
+        // Function to render a single multiple-choice question
+        function renderQuestion(questionId) {
+            const questionData = questionsData[questionId];
+            const optionsGroup = document.getElementById(`${questionId}Options`);
+            optionsGroup.innerHTML = ''; // Clear previous options
+
+            questionData.options.forEach((option, index) => {
+                const optionChar = String.fromCharCode(65 + index); // A, B, C, D
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'flex items-center mb-2';
+                optionDiv.innerHTML = `
+                    <input type="radio" id="${questionId}Option${optionChar}" name="${questionId}" value="${option}" class="mr-2">
+                    <label for="${questionId}Option${optionChar}">${optionChar}: ${option}</label>
+                `;
+                optionsGroup.appendChild(optionDiv);
+            });
+
+            // Update question text for dynamic questions based on qualitative data
+            if (questionId === 'q3') {
+                document.getElementById('q3Categories').innerHTML = `${questionsData.q3.targetCategories.join(' or ')}`;
+            } else if (questionId === 'q5') {
+                document.getElementById('q5Categories').innerHTML = `${questionsData.q5.targetCategories.join(' or ')}`;
+            }
+        }
+
+        // Function to check a single multiple-choice question
+        function checkQuestion(questionId) {
+            const questionData = questionsData[questionId];
+            const selectedOption = document.querySelector(`input[name="${questionId}"]:checked`);
+            const feedbackElement = document.getElementById(`${questionId}Feedback`);
+
+            if (!selectedOption) {
+                feedbackElement.textContent = 'Please select an option.';
+                feedbackElement.className = 'answer-feedback text-yellow-600';
+                return;
+            }
+
+            let isCorrect = false;
+            if (questionId === 'q4') { // Q4 is a string comparison
+                isCorrect = selectedOption.value === questionData.correctAnswer;
+            } else { // Q2, Q3, Q5 are numerical comparisons
+                const userAnswer = parseFloat(selectedOption.value);
+                isCorrect = Math.abs(userAnswer - questionData.correctAnswer) < 0.01;
+            }
+            
+            if (isCorrect) {
+                feedbackElement.textContent = 'Correct!';
+                feedbackElement.className = 'answer-feedback text-green-600';
+            } else {
+                feedbackElement.textContent = `Incorrect. The correct answer is: ${questionData.correctAnswer}`;
+                feedbackElement.className = 'answer-feedback text-red-600';
+            }
+        }
+
+        // Function to check the user's work for the bar chart (Q1)
+        function checkBarChartWork() {
+            let allCorrect = true;
+            histogramData.forEach(data => {
+                if (data.currentFrequency === data.frequency) { // Compare current with correct frequency
+                    data.status = 'correct';
+                } else {
+                    data.status = 'incorrect';
+                    allCorrect = false;
+                }
+            });
+            drawBarChart(); // Redraw to show colors
+
+            if (allCorrect) {
+                showMessage('Congratulations! Your bar chart is correct!', 'success');
+            } else {
+                showMessage('Some bars are incorrect. Keep trying!', 'error');
+            }
+        }
+
+        // Function to reset the bar chart and questions
+        async function resetActivity() {
+            loadingIndicator.style.display = 'block';
+            await new Promise(resolve => setTimeout(resolve, 10)); // Small delay for UI update
+            
+            histogramData = await generateRandomData(); // Regenerate data
+            histogramData.forEach(data => {
+                data.currentFrequency = 0; // Reset user's current values for bars
+                data.status = 'neutral';
+            });
+            updateTable();
+            drawBarChart(); // Redraw the chart
+            
+            document.querySelectorAll('.answer-feedback').forEach(el => {
+                el.textContent = '';
+                el.className = 'answer-feedback';
+            });
+            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+
+            renderQuestion('q2');
+            renderQuestion('q3');
+            renderQuestion('q4');
+            renderQuestion('q5');
+
+            loadingIndicator.style.display = 'none';
+        }
+
+        // Function to display messages (currently not used for chart interaction, but kept for consistency)
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`;
+            messageBox.style.display = message ? 'block' : 'none';
+        }
+
+        // Initial setup and event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            resetActivity(); // Initial call to generate data, draw chart, and render questions
+
+            // Attach event listeners to the existing buttons in HTML
+            document.getElementById('checkButton').addEventListener('click', checkBarChartWork);
+            document.getElementById('resetButton').addEventListener('click', resetActivity);
+
+            document.querySelectorAll('.check-question-button').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const questionId = event.target.dataset.question;
+                    checkQuestion(questionId);
+                });
+            });
+
+            // Add event listeners to the barChartBarsContainer for dragging
+            barChartBarsContainer.addEventListener('mousedown', handleBarMouseDown);
+            barChartBarsContainer.addEventListener('mousemove', handleBarMouseMove);
+            barChartBarsContainer.addEventListener('mouseup', handleBarMouseUp);
+            barChartBarsContainer.addEventListener('touchstart', handleBarMouseDown);
+            barChartBarsContainer.addEventListener('touchmove', handleBarMouseMove);
+            barChartBarsContainer.addEventListener('touchend', handleBarMouseUp);
+
+            // Adjust bar chart on window resize
+            window.addEventListener('resize', drawBarChart);
+        });
+
+        window.addEventListener('load', drawBarChart);
+    </script>
+</body>
+</html>
