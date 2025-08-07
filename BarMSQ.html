@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>January Sales Units Analysis</title>
+    <!-- Tailwind CSS CDN for basic styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #4a5568; /* Darker gray for table header */
+            color: #ffffff;
+            font-weight: 600;
+        }
+        td {
+            background-color: #f7fafc; /* Very light gray for table cells */
+        }
+        .message-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none; /* Hidden by default */
+        }
+        .message-box.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message-box.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .button-style {
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: none;
+            margin-top: 20px; /* Added margin for separation */
+        }
+        .button-style:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .button-style:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+        }
+        .blue-button {
+            background: linear-gradient(145deg, #60a5fa, #3b82f6);
+            color: white;
+        }
+        .blue-button:hover {
+            background: linear-gradient(145deg, #4f8cf4, #3366cc);
+        }
+        .blue-button:active {
+            background: linear-gradient(145deg, #3b82f6, #60a5fa);
+        }
+        .gray-button {
+            background: linear-gradient(145deg, #a0aec0, #718096);
+            color: white;
+        }
+        .gray-button:hover {
+            background: linear-gradient(145deg, #8b96a9, #5c6776);
+        }
+        .gray-button:active {
+            background: linear-gradient(145deg, #718096, #a0aec0);
+        }
+        .question-text {
+            text-align: left;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+            justify-items: center;
+        }
+        @media (min-width: 768px) { /* Medium screens and up */
+            .options-grid {
+                grid-template-columns: repeat(2, 1fr); /* Exactly two columns */
+            }
+        }
+        .option-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background-color: #f7fafc;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .option-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+        }
+        .option-item input[type="radio"] {
+            margin-bottom: 10px;
+        }
+        .option-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .hidden-canvas {
+            display: none; /* Hide canvases used for drawing charts */
+        }
+        .text-options-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .text-option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-5">
+    <div class="container bg-white rounded-xl shadow-2xl p-8 md:p-10">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4">January Sales Units Analysis</h1>
+        <div class="scenario-text text-left mb-6">
+            <p>You are a business analyst reviewing a company's January sales data. The company sells various products, and you need to accurately visualize the number of units sold for each product line to share with your management team.</p>
+        </div>
+
+        <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
+            <caption>Table 1: January Sales Units</caption>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Units Sold</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <!-- Table rows will be generated dynamically by JavaScript -->
+            </tbody>
+        </table>
+
+        <p class="question-text">Q1: Based on Table 1, which bar chart correctly represents the distribution of units sold?</p>
+
+        <div class="options-grid" id="chartOptions">
+            <!-- Bar chart options will be generated dynamically by JavaScript -->
+        </div>
+        <div class="message-box" id="chartMessageBox"></div>
+        <button id="checkChartButton" class="button-style blue-button">
+            Check Answer
+        </button>
+
+        <hr class="my-8 border-gray-300">
+
+        <!-- Question 2 -->
+        <p class="question-text">Q2: What is the variable type of the variable "Product"?</p>
+        <div class="text-options-container" id="productTypeOptions">
+            <label class="text-option-item">
+                <input type="radio" name="productTypeOption" value="Qualitative (Categorical)">
+                Qualitative (Categorical)
+            </label>
+            <label class="text-option-item">
+                <input type="radio" name="productTypeOption" value="Quantitative (Numerical)">
+                Quantitative (Numerical)
+            </label>
+        </div>
+        <div class="message-box" id="productTypeMessageBox"></div>
+        <button id="checkProductTypeButton" class="button-style blue-button">
+            Check Answer
+        </button>
+
+        <!-- Question 3 -->
+        <p class="question-text">Q3: What is the level of measurement for the variable "Product"?</p>
+        <div class="text-options-container" id="measurementLevelOptions">
+            <label class="text-option-item">
+                <input type="radio" name="measurementLevelOption" value="Nominal">
+                Nominal
+            </label>
+            <label class="text-option-item">
+                <input type="radio" name="measurementLevelOption" value="Ordinal">
+                Ordinal
+            </label>
+            <label class="text-option-item">
+                <input type="radio" name="measurementLevelOption" value="Interval">
+                Interval
+            </label>
+            <label class="text-option-item">
+                <input type="radio" name="measurementLevelOption" value="Ratio">
+                Ratio
+            </label>
+        </div>
+        <div class="message-box" id="measurementLevelMessageBox"></div>
+        <button id="checkMeasurementLevelButton" class="button-style blue-button">
+            Check Answer
+        </button>
+
+        <!-- Question 4 -->
+        <p class="question-text">Q4: What is Table 1 called?</p>
+        <div class="text-options-container" id="tableCaptionOptions">
+            <label class="text-option-item">
+                <input type="radio" name="tableCaptionOption" value="Frequency table">
+                Frequency table
+            </label>
+            <label class="text-option-item">
+                <input type="radio" name="tableCaptionOption" value="Frequency distribution">
+                Frequency distribution
+            </label>
+        </div>
+        <div class="message-box" id="tableCaptionMessageBox"></div>
+        <button id="checkTableCaptionButton" class="button-style blue-button">
+            Check Answer
+        </button>
+
+        <!-- Question 5 -->
+        <p class="question-text" id="modeQuestionText">Q5: What is the mode for the variable "Product"?</p>
+        <div class="text-options-container" id="modeOptions">
+            <!-- Mode options will be generated dynamically by JavaScript -->
+        </div>
+        <div class="message-box" id="modeMessageBox"></div>
+        <button id="checkModeButton" class="button-style blue-button">
+            Check Answer
+        </button>
+
+        <hr class="my-8 border-gray-300">
+        <div class="button-group mt-8 flex justify-center">
+            <button id="resetQuestionButton" class="button-style gray-button">
+                Reset All Questions
+            </button>
+        </div>
+
+        <!-- Hidden canvases for drawing bar charts -->
+        <canvas id="canvas1" class="hidden-canvas" width="500" height="400"></canvas>
+        <canvas id="canvas2" class="hidden-canvas" width="500" height="400"></canvas>
+        <canvas id="canvas3" class="hidden-canvas" width="500" height="400"></canvas>
+        <canvas id="canvas4" class="hidden-canvas" width="500" height="400"></canvas>
+    </div>
+
+    <script>
+        /**
+         * Shuffles an array in place using the Fisher-Yates algorithm.
+         * @param {Array} array - The array to shuffle.
+         * @returns {Array} The shuffled array.
+         */
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        const dataTableBody = document.getElementById('dataTableBody');
+        const chartOptionsDiv = document.getElementById('chartOptions');
+        const modeOptionsDiv = document.getElementById('modeOptions');
+
+        // Message boxes for individual questions
+        const chartMessageBox = document.getElementById('chartMessageBox');
+        const productTypeMessageBox = document.getElementById('productTypeMessageBox');
+        const measurementLevelMessageBox = document.getElementById('measurementLevelMessageBox');
+        const tableCaptionMessageBox = document.getElementById('tableCaptionMessageBox');
+        const modeMessageBox = document.getElementById('modeMessageBox');
+        const allMessageBoxes = [chartMessageBox, productTypeMessageBox, measurementLevelMessageBox, tableCaptionMessageBox, modeMessageBox];
+
+        // Buttons
+        const checkChartButton = document.getElementById('checkChartButton');
+        const checkProductTypeButton = document.getElementById('checkProductTypeButton');
+        const checkMeasurementLevelButton = document.getElementById('checkMeasurementLevelButton');
+        const checkTableCaptionButton = document.getElementById('checkTableCaptionButton');
+        const checkModeButton = document.getElementById('checkModeButton');
+        const resetQuestionButton = document.getElementById('resetQuestionButton');
+
+        // Global variables to store the correct answers for each question
+        let currentCorrectChartIndex = -1;
+        let correctProductType = 'Qualitative (Categorical)';
+        let correctMeasurementLevel = 'Nominal';
+        let correctTableCaption = 'Frequency table';
+        let correctMode = '';
+
+        // Changed categories to be relevant to a business scenario
+        const serviceCategories = ['Laptops', 'Desktops', 'Printers', 'Monitors', 'Accessories'];
+        const barChartColors = ["#008DC3", "#00BFFF", "#87CEFA", "#ADD8E6", "#B0E0E6"];
+        const totalVisits = 150;
+
+        /**
+         * Generates random data for monthly units sold.
+         * @returns {Map<string, number>} A Map of product categories to their units sold counts.
+         */
+        function generateHospitalData() {
+            const counts = new Map();
+            serviceCategories.forEach(category => counts.set(category, 0));
+
+            for (let i = 0; i < totalVisits; i++) {
+                const randomCategory = serviceCategories[Math.floor(Math.random() * serviceCategories.length)];
+                counts.set(randomCategory, counts.get(randomCategory) + 1);
+            }
+            return counts;
+        }
+
+        /**
+         * Populates the HTML table with units sold data.
+         * @param {Map<string, number>} counts - The data to display.
+         */
+        function updateServiceTable(counts) {
+            dataTableBody.innerHTML = '';
+            counts.forEach((count, category) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${category}</td><td>${count}</td>`;
+                dataTableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * Draws an enhanced, high-quality bar chart on the specified canvas.
+         * @param {HTMLCanvasElement} canvas - The canvas to draw on.
+         * @param {Map<string, number>} counts - The data for the chart.
+         * @param {string[]} labels - The labels for the bars.
+         * @param {string[]} colors - The colors for the bars.
+         */
+        function drawBarChart(canvas, counts, labels, colors) {
+            // Check if the canvas element is null before proceeding
+            if (!canvas) {
+                console.error("Canvas element is null. Cannot draw chart.");
+                return;
+            }
+
+            // Increased resolution for higher quality rendering
+            const logicalWidth = 800;
+            const logicalHeight = 640;
+            const ratio = window.devicePixelRatio || 1;
+            
+            canvas.width = logicalWidth * ratio;
+            canvas.height = logicalHeight * ratio;
+            canvas.style.width = `${logicalWidth}px`;
+            canvas.style.height = `${logicalHeight}px`;
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(ratio, ratio);
+            ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+
+            // Define chart properties
+            const topPadding = 80;
+            const bottomPadding = 60;
+            const leftPadding = 60;
+            const rightPadding = 20;
+            const chartWidth = logicalWidth - leftPadding - rightPadding;
+            const chartHeight = logicalHeight - topPadding - bottomPadding;
+            const barWidth = chartWidth / (labels.length * 2);
+            const dataValues = Array.from(counts.values());
+            const maxVal = Math.max(10, Math.ceil(Math.max(...dataValues) / 10) * 10); 
+
+            // Draw Y-axis grid lines and labels
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            ctx.font = '16px Arial'; // Increased font size
+            ctx.fillStyle = '#4a5568';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+
+            for (let i = 0; i <= 5; i++) {
+                const value = (maxVal / 5) * i;
+                const yPos = logicalHeight - bottomPadding - (value / maxVal) * chartHeight;
+                
+                ctx.beginPath();
+                ctx.moveTo(leftPadding, yPos);
+                ctx.lineTo(logicalWidth - rightPadding, yPos);
+                ctx.stroke();
+                ctx.fillText(value, leftPadding - 10, yPos);
+            }
+
+            // Draw main axes
+            ctx.strokeStyle = '#a0aec0';
+            ctx.beginPath();
+            ctx.moveTo(leftPadding, topPadding);
+            ctx.lineTo(leftPadding, logicalHeight - bottomPadding);
+            ctx.lineTo(logicalWidth - rightPadding, logicalHeight - bottomPadding);
+            ctx.stroke();
+
+            // Draw axis titles
+            ctx.save();
+            ctx.fillStyle = '#2d3748';
+            ctx.font = '18px Arial'; // Increased font size
+            ctx.textAlign = 'center';
+            
+            // Y-axis title
+            ctx.translate(leftPadding / 2 - 10, logicalHeight / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Units Sold in January', 0, 0);
+            ctx.restore();
+
+            // X-axis title
+            ctx.fillText('Product', leftPadding + chartWidth / 2, logicalHeight - bottomPadding / 2 + 10); // Centered relative to the chart area
+
+            // Draw Bars and X-axis labels
+            let colorIndex = 0;
+            labels.forEach((label, index) => {
+                const value = counts.get(label) || 0;
+                const barHeight = (value / maxVal) * chartHeight;
+                const x = leftPadding + index * (chartWidth / labels.length) + (chartWidth / labels.length - barWidth) / 2;
+                const y = logicalHeight - bottomPadding - barHeight;
+
+                // Bar with rounded top corners
+                const cornerRadius = 5;
+                ctx.fillStyle = colors[colorIndex % colors.length];
+                ctx.beginPath();
+                ctx.moveTo(x + cornerRadius, y);
+                ctx.lineTo(x + barWidth - cornerRadius, y);
+                ctx.quadraticCurveTo(x + barWidth, y, x + barWidth, y + cornerRadius);
+                ctx.lineTo(x + barWidth, logicalHeight - bottomPadding);
+                ctx.lineTo(x, logicalHeight - bottomPadding);
+                ctx.lineTo(x, y + cornerRadius);
+                ctx.quadraticCurveTo(x, y, x + cornerRadius, y);
+                ctx.closePath();
+                ctx.fill();
+
+                // X-axis category label
+                ctx.fillStyle = '#4a5568';
+                ctx.font = '16px Arial'; // Increased font size
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(label, x + barWidth / 2, logicalHeight - bottomPadding + 10);
+                
+                colorIndex++;
+            });
+        }
+
+        /**
+         * Generates all charts (correct and distractors) and populates the MCQ options.
+         */
+        function generateQuestion() {
+            // Generate a single dataset for the table and the correct chart
+            const correctData = generateHospitalData();
+            updateServiceTable(correctData);
+
+            // Generate three completely independent datasets for the distractors
+            const distractorData1 = generateHospitalData();
+            const distractorData2 = generateHospitalData();
+            const distractorData3 = generateHospitalData();
+
+            const chartsData = [];
+            const canvasIds = ['canvas1', 'canvas2', 'canvas3', 'canvas4'];
+
+            // Store all chart data and canvas assignments
+            chartsData.push({ canvasId: canvasIds[0], counts: correctData, labels: serviceCategories, isCorrect: true });
+            chartsData.push({ canvasId: canvasIds[1], counts: distractorData1, labels: serviceCategories, isCorrect: false });
+            chartsData.push({ canvasId: canvasIds[2], counts: distractorData2, labels: serviceCategories, isCorrect: false });
+            chartsData.push({ canvasId: canvasIds[3], counts: distractorData3, labels: serviceCategories, isCorrect: false });
+            
+            // Randomly shuffle the order of the charts
+            shuffleArray(chartsData);
+
+            // Find the index of the correct answer after shuffling
+            currentCorrectChartIndex = chartsData.findIndex(item => item.isCorrect);
+
+            chartOptionsDiv.innerHTML = '';
+            chartsData.forEach((item, index) => {
+                const canvas = document.getElementById(item.canvasId);
+                drawBarChart(canvas, item.counts, item.labels, barChartColors);
+                
+                const optionChar = String.fromCharCode(65 + index);
+                const optionItem = document.createElement('label');
+                optionItem.className = 'option-item';
+                optionItem.innerHTML = `
+                    <input type="radio" name="chartOption" value="${index}" class="mb-2">
+                    <span>${optionChar}:</span>
+                    <img src="${canvas.toDataURL('image/png')}" alt="Bar Chart Option ${optionChar}">
+                `;
+                chartOptionsDiv.appendChild(optionItem);
+                optionItem.addEventListener('click', () => {
+                    optionItem.querySelector('input[type="radio"]').checked = true;
+                });
+            });
+
+            // Generate options for the mode question
+            generateModeQuestion(correctData);
+        }
+
+        /**
+         * Finds the mode from the data and populates the options for the mode question.
+         * @param {Map<string, number>} data - The data to analyze.
+         */
+        function generateModeQuestion(data) {
+            let maxCount = -1;
+            let modeItems = [];
+
+            // Find the maximum value
+            data.forEach((value, category) => {
+                if (value > maxCount) {
+                    maxCount = value;
+                    modeItems = [category];
+                } else if (value === maxCount) {
+                    modeItems.push(category);
+                }
+            });
+
+            // If there's a unique mode, set the correct answer
+            if (modeItems.length === 1) {
+                correctMode = modeItems[0];
+            } else {
+                correctMode = 'No unique mode or multiple modes';
+            }
+
+            // Create and shuffle the options for the mode question
+            const modeOptions = [...serviceCategories, 'No unique mode or multiple modes'];
+            const shuffledModeOptions = shuffleArray(modeOptions);
+            
+            modeOptionsDiv.innerHTML = '';
+            shuffledModeOptions.forEach(option => {
+                const optionItem = document.createElement('label');
+                optionItem.className = 'text-option-item';
+                optionItem.innerHTML = `
+                    <input type="radio" name="modeOption" value="${option}">
+                    ${option}
+                `;
+                modeOptionsDiv.appendChild(optionItem);
+            });
+        }
+
+        /**
+         * Displays a message in the message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success', 'error', or a Tailwind color class.
+         * @param {HTMLElement} messageBox - The specific message box element to use.
+         */
+        function showMessage(message, type, messageBox) {
+            messageBox.innerHTML = message;
+            messageBox.className = `message-box ${type}`;
+            messageBox.style.display = message ? 'block' : 'none';
+        }
+
+        // Individual check answer functions
+        function checkChartAnswer() {
+            const selectedOption = document.querySelector('input[name="chartOption"]:checked');
+            if (!selectedOption) {
+                showMessage('Please select an option before checking!', 'error', chartMessageBox);
+                return;
+            }
+            const userAnswerIndex = parseInt(selectedOption.value, 10);
+            if (userAnswerIndex === currentCorrectChartIndex) {
+                showMessage('Well done! That\'s the correct graph! 🎉', 'success', chartMessageBox);
+            } else {
+                showMessage('Incorrect. Please try again. 🤔', 'error', chartMessageBox);
+            }
+        }
+
+        function checkProductTypeAnswer() {
+            const selectedOption = document.querySelector('input[name="productTypeOption"]:checked');
+            if (!selectedOption) {
+                showMessage('Please select an option before checking!', 'error', productTypeMessageBox);
+                return;
+            }
+            if (selectedOption.value === correctProductType) {
+                showMessage('Correct! "Product" is a qualitative variable. 🎉', 'success', productTypeMessageBox);
+            } else {
+                showMessage('Incorrect. "Product" is a qualitative variable because it is a category. 🤔', 'error', productTypeMessageBox);
+            }
+        }
+
+        function checkMeasurementLevelAnswer() {
+            const selectedOption = document.querySelector('input[name="measurementLevelOption"]:checked');
+            if (!selectedOption) {
+                showMessage('Please select an option before checking!', 'error', measurementLevelMessageBox);
+                return;
+            }
+            if (selectedOption.value === correctMeasurementLevel) {
+                showMessage('Correct! "Nominal" is the correct level of measurement. 🎉', 'success', measurementLevelMessageBox);
+            } else {
+                showMessage('Incorrect. Since the categories have no inherent order, the level of measurement is Nominal. 🤔', 'error', measurementLevelMessageBox);
+            }
+        }
+
+        function checkTableCaptionAnswer() {
+            const selectedOption = document.querySelector('input[name="tableCaptionOption"]:checked');
+            if (!selectedOption) {
+                showMessage('Please select an option before checking!', 'error', tableCaptionMessageBox);
+                return;
+            }
+            if (selectedOption.value === correctTableCaption) {
+                showMessage('Correct! Table 1 is an example of a frequency table. 🎉', 'success', tableCaptionMessageBox);
+            } else {
+                showMessage('Incorrect. The table shows the frequency of each category, making it a frequency table. A frequency distribution is a summary that shows the frequency of quantitative variable. 🤔', 'error', tableCaptionMessageBox);
+            }
+        }
+
+        function checkModeAnswer() {
+            const selectedOption = document.querySelector('input[name="modeOption"]:checked');
+            if (!selectedOption) {
+                showMessage('Please select an option before checking!', 'error', modeMessageBox);
+                return;
+            }
+            if (selectedOption.value === correctMode) {
+                showMessage(`Correct! The mode is "${correctMode}". 🎉`, 'success', modeMessageBox);
+            } else {
+                showMessage(`Incorrect. The mode is the value that appears most often, which is "${correctMode}". 🤔`, 'error', modeMessageBox);
+            }
+        }
+
+        /**
+         * Resets all questions with new data and charts.
+         */
+        function resetQuestion() {
+            allMessageBoxes.forEach(box => showMessage('', 'neutral', box));
+            const radioButtons = document.querySelectorAll('input[type="radio"]');
+            radioButtons.forEach(radio => radio.checked = false);
+            generateQuestion();
+        }
+
+        // Initial setup and event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            generateQuestion();
+            checkChartButton.addEventListener('click', checkChartAnswer);
+            checkProductTypeButton.addEventListener('click', checkProductTypeAnswer);
+            checkMeasurementLevelButton.addEventListener('click', checkMeasurementLevelAnswer);
+            checkTableCaptionButton.addEventListener('click', checkTableCaptionAnswer);
+            checkModeButton.addEventListener('click', checkModeAnswer);
+            resetQuestionButton.addEventListener('click', resetQuestion);
+        });
+    </script>
+</body>
+</html>
