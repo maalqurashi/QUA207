@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUA207 - Chapter 2: Confidence Intervals</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #E3E0D2; /* KSU Cream */
+            color: #000000;
+        }
+        .full-height-center {
+            min-height: 100vh;
+        }
+        .text-ksu-blue { color: #008DC3; }
+        .bg-ksu-blue { background-color: #008DC3; }
+        .hover\:bg-ksu-blue-dark:hover { background-color: #007AB0; }
+        .focus\:ring-ksu-blue-alpha:focus { --tw-ring-color: rgba(0, 141, 195, 0.5); }
+
+        .text-ksu-grey { color: #748995; }
+        .bg-ksu-grey { background-color: #748995; }
+        .hover\:bg-ksu-grey-dark:hover { background-color: #627581; }
+        .focus\:ring-ksu-grey-alpha:focus { --tw-ring-color: rgba(116, 137, 149, 0.5); }
+    </style>
+</head>
+<body class="text-black">
+    <!-- Back Button -->
+    <div class="p-4">
+        <a href="qua207.html" class="inline-flex items-center text-ksu-grey hover:text-ksu-grey-dark transition-colors duration-300">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to QUA207 Chapters
+        </a>
+    </div>
+
+    <div class="full-height-center flex items-center justify-center p-4">
+        <div class="container mx-auto max-w-4xl">
+            <!-- Page Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-ksu-grey mb-4 drop-shadow-lg">
+                    Chapter 2
+                </h1>
+                <p class="text-2xl text-gray-700 mb-2">Confidence Intervals</p>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Select the type of confidence interval you want to calculate. Each tool will guide you through the calculation process step by step.
+                </p>
+            </div>
+
+            <!-- Confidence Interval Options Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- CI for Mean -->
+                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2">
+                    <div class="mb-6">
+                        <!-- Icon for Mean -->
+                        <div class="mb-4">
+                            <svg class="w-16 h-16 mx-auto text-ksu-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-3xl font-bold text-ksu-grey mb-4">Confidence Interval for Mean</h2>
+                        <p class="text-lg text-gray-700 mb-2">
+                            Calculate confidence intervals for population means
+                        </p>
+                        <p class="text-sm text-gray-500">
+                            Use when you have sample data and want to estimate the population mean
+                        </p>
+                    </div>
+                    <a href="qua207-chapter2-mean.html" class="inline-block bg-ksu-blue hover:bg-ksu-blue-dark text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-ksu-blue-alpha">
+                        Calculate Mean CI
+                    </a>
+                </div>
+
+                <!-- CI for Proportion -->
+                <div class="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 flex flex-col items-center text-center transform hover:-translate-y-2">
+                    <div class="mb-6">
+                        <!-- Icon for Proportion -->
+                        <div class="mb-4">
+                            <svg class="w-16 h-16 mx-auto text-ksu-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-3xl font-bold text-ksu-grey mb-4">Confidence Interval for Proportion</h2>
+                        <p class="text-lg text-gray-700 mb-2">
+                            Calculate confidence intervals for population proportions
+                        </p>
+                        <p class="text-sm text-gray-500">
+                            Use when you have categorical data and want to estimate population proportion
+                        </p>
+                    </div>
+                    <a href="qua207-chapter2-proportion.html" class="inline-block bg-ksu-blue hover:bg-ksu-blue-dark text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-ksu-blue-alpha">
+                        Calculate Proportion CI
+                    </a>
+                </div>
+            </div>
+
+            <!-- Additional Information Section -->
+            <div class="mt-12 bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-ksu-grey mb-4">About Confidence Intervals</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">Mean Confidence Interval</h4>
+                        <p class="text-gray-600 text-sm">
+                            Used when estimating a population mean from sample data. Common formulas include:
+                            • CI for mean with known population standard deviation
+                            • CI for mean with unknown population standard deviation (t-distribution)
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">Proportion Confidence Interval</h4>
+                        <p class="text-gray-600 text-sm">
+                            Used when estimating a population proportion from sample data. The formula typically uses:
+                            • Sample proportion (p̂)
+                            • Standard error of proportion
+                            • Z-score based on confidence level
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
