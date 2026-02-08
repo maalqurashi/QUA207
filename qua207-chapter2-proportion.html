@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>90% Confidence Interval Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #E3E0D2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border: 2px solid #000000;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #000000;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #748995;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .sample-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            margin: 30px auto;
+            max-width: 400px;
+        }
+
+        .dot {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .dot.success {
+            background-color: #0084BD;
+        }
+
+        .dot.failure {
+            background-color: #D0D0D0;
+        }
+
+        .step-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #F8F8F8;
+            border: 1px solid #000000;
+            border-radius: 8px;
+        }
+
+        .step-title {
+            color: #000000;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        label {
+            display: block;
+            color: #000000;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #000000;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #0084BD;
+        }
+
+        button {
+            background-color: #0084BD;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #006999;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .hint-button {
+            background-color: #748995;
+            font-size: 14px;
+            padding: 8px 16px;
+            margin-left: 10px;
+        }
+
+        .hint-button:hover {
+            background-color: #5a6b75;
+        }
+
+        .hint-text {
+            color: #748995;
+            font-style: italic;
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff;
+            border-left: 3px solid #748995;
+            display: none;
+        }
+
+        .hint-text.visible {
+            display: block;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            color: #0084BD;
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .number-line-container {
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .number-line {
+            position: relative;
+            height: 80px;
+            margin: 40px 20px;
+        }
+
+        .line {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #000000;
+        }
+
+        .tick {
+            position: absolute;
+            top: 35px;
+            width: 2px;
+            height: 12px;
+            background: #000000;
+        }
+
+        .tick-label {
+            position: absolute;
+            top: 50px;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #000000;
+        }
+
+        .interval-bar {
+            position: absolute;
+            top: 30px;
+            height: 20px;
+            background: #0084BD;
+            border-radius: 4px;
+            opacity: 0;
+            animation: slideIn 0.8s forwards;
+        }
+
+        .true-value-line {
+            position: absolute;
+            top: 10px;
+            width: 3px;
+            height: 60px;
+            background: #000000;
+            opacity: 0;
+            animation: dropIn 1s forwards 0.8s;
+        }
+
+        .true-value-line::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -5px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid #000000;
+        }
+
+        .true-value-label {
+            position: absolute;
+            top: -25px;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes dropIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            50% {
+                transform: translateY(5px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-box {
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .result-box.success {
+            background: #e8f5e9;
+            border: 2px solid #0084BD;
+            color: #000000;
+        }
+
+        .result-box.miss {
+            background: #ffebee;
+            border: 2px solid #d32f2f;
+            color: #000000;
+        }
+
+        .educational-note {
+            background: #F8F8F8;
+            border-left: 4px solid #0084BD;
+            padding: 20px;
+            margin: 30px 0;
+            color: #000000;
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .context-box {
+            background: #F8F8F8;
+            border: 2px solid #0084BD;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stats-display {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: #F8F8F8;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #748995;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #000000;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .simulation-container {
+            position: relative;
+            margin: 30px 0;
+            padding: 20px 30px;
+            background: #F8F8F8;
+            border: 2px solid #000000;
+            border-radius: 8px;
+        }
+
+        .simulation-grid {
+            position: relative;
+            min-height: 400px;
+        }
+
+        .ci-row {
+            position: relative;
+            height: 8px;
+            margin: 2px 0;
+        }
+
+        .ci-bar {
+            position: absolute;
+            height: 100%;
+            border-radius: 2px;
+            opacity: 0.8;
+        }
+
+        .ci-bar-animated {
+            animation: fadeInBar 0.3s ease-in;
+        }
+
+        @keyframes fadeInBar {
+            from {
+                opacity: 0;
+                transform: scaleX(0);
+            }
+            to {
+                opacity: 0.8;
+                transform: scaleX(1);
+            }
+        }
+
+        .true-line-vertical {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #000000;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>90% Confidence Interval Calculator</h1>
+        <p class="subtitle">Learn to calculate confidence intervals for π step-by-step</p>
+
+        <div id="gameContent"></div>
+    </div>
+
+    <script>
+        class ConfidenceIntervalGame {
+            constructor() {
+                this.trueProportion = 0;
+                this.sample = [];
+                this.sampleProportion = 0;
+                this.n = 100;
+                this.currentStep = 0;
+                this.userAnswers = {};
+                this.init();
+            }
+
+            init() {
+                // Generate random true proportion between 0.3 and 0.7
+                this.trueProportion = Math.random() * 0.4 + 0.3;
+                
+                // Generate sample
+                this.sample = [];
+                for (let i = 0; i < this.n; i++) {
+                    this.sample.push(Math.random() < this.trueProportion ? 1 : 0);
+                }
+                
+                // Calculate sample proportion
+                const successes = this.sample.filter(x => x === 1).length;
+                this.sampleProportion = successes / this.n;
+                
+                this.currentStep = 1;
+                this.userAnswers = {};
+                this.render();
+            }
+
+            render() {
+                const content = document.getElementById('gameContent');
+                
+                if (this.currentStep <= 4) {
+                    content.innerHTML = this.renderGameplay();
+                } else if (this.currentStep === 5) {
+                    content.innerHTML = this.renderResults();
+                } else if (this.currentStep === 6) {
+                    content.innerHTML = this.renderSimulation();
+                }
+                
+                this.attachEventListeners();
+            }
+
+            renderGameplay() {
+                let html = '';
+                
+                // Add introductory context
+                html += `
+                    <div class="context-box">
+                        <p style="color: #000000; line-height: 1.6; text-align: center;">
+                            A swimming pool is filled with blue and gray balls. We would like to estimate the proportion of blue balls. 
+                            A simple random sample from the pool was selected:
+                        </p>
+                    </div>
+                `;
+                
+                // Always show the sample grid
+                html += '<div class="sample-grid">';
+                this.sample.forEach(value => {
+                    html += `<div class="dot ${value === 1 ? 'success' : 'failure'}"></div>`;
+                });
+                html += '</div>';
+
+                // Stats display
+                const successes = this.sample.filter(x => x === 1).length;
+                html += `
+                    <div class="stats-display">
+                        <div class="stat-item">
+                            <div class="stat-label">Sample Size (n)</div>
+                            <div class="stat-value">${this.n}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Blue Dots</div>
+                            <div class="stat-value">${successes}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Grey Dots</div>
+                            <div class="stat-value">${this.n - successes}</div>
+                        </div>
+                    </div>
+                `;
+
+                // Step 1: Sample Proportion
+                if (this.currentStep >= 1) {
+                    html += this.renderStep1();
+                }
+
+                // Step 2: Critical Value
+                if (this.currentStep >= 2) {
+                    html += this.renderStep2();
+                }
+
+                // Step 3: Standard Error
+                if (this.currentStep >= 3) {
+                    html += this.renderStep3();
+                }
+
+                // Step 4: Confidence Interval
+                if (this.currentStep >= 4) {
+                    html += this.renderStep4();
+                }
+
+                return html;
+            }
+
+            renderStep1() {
+                return `
+                    <div class="step-container">
+                        <div class="step-title">Step 1: Calculate Sample Proportion (p̂)</div>
+                        <div class="input-group">
+                            <label>What is the sample proportion? (Format: 0.xx)</label>
+                            <input type="text" id="samplePropInput" placeholder="0.XX" 
+                                   ${this.userAnswers.sampleProp ? 'disabled value="' + this.userAnswers.sampleProp + '"' : ''}>
+                            ${!this.userAnswers.sampleProp ? '<button id="submitStep1">Submit</button>' : ''}
+                            <div id="step1Error" class="error-message"></div>
+                            ${this.userAnswers.sampleProp ? '<div class="success-message">✓ Correct!</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderStep2() {
+                return `
+                    <div class="step-container">
+                        <div class="step-title">Step 2: Critical Value (Z)</div>
+                        <div class="input-group">
+                            <label>For a 90% Confidence Level, what is the critical value? (Round to 3 decimals)</label>
+                            <div class="button-group">
+                                <input type="text" id="criticalValueInput" placeholder="1.XXX" 
+                                       ${this.userAnswers.criticalValue ? 'disabled value="' + this.userAnswers.criticalValue + '"' : ''}>
+                                ${!this.userAnswers.criticalValue ? '<button class="hint-button" id="hintStep2">Hint</button>' : ''}
+                            </div>
+                            <div id="hintStep2Text" class="hint-text">
+                                Excel formula: =NORM.S.INV(0.95) or =ABS(NORM.S.INV(0.05))
+                            </div>
+                            ${!this.userAnswers.criticalValue ? '<button id="submitStep2">Submit</button>' : ''}
+                            <div id="step2Error" class="error-message"></div>
+                            ${this.userAnswers.criticalValue ? '<div class="success-message">✓ Correct!</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderStep3() {
+                return `
+                    <div class="step-container">
+                        <div class="step-title">Step 3: Standard Error (SE)</div>
+                        <div class="input-group">
+                            <label>Calculate the Standard Error: SE = √[p̂(1-p̂)/n]</label>
+                            <div class="button-group">
+                                <input type="text" id="standardErrorInput" placeholder="0.XXXX" 
+                                       ${this.userAnswers.standardError ? 'disabled value="' + this.userAnswers.standardError + '"' : ''}>
+                                ${!this.userAnswers.standardError ? '<button class="hint-button" id="hintStep3">Hint</button>' : ''}
+                            </div>
+                            <div id="hintStep3Text" class="hint-text">
+                                Excel formula: =SQRT((p̂*(1-p̂))/100)<br>
+                                Replace p̂ with your sample proportion from Step 1
+                            </div>
+                            ${!this.userAnswers.standardError ? '<button id="submitStep3">Submit</button>' : ''}
+                            <div id="step3Error" class="error-message"></div>
+                            ${this.userAnswers.standardError ? '<div class="success-message">✓ Correct!</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderStep4() {
+                return `
+                    <div class="step-container">
+                        <div class="step-title">Step 4: Calculate Confidence Interval</div>
+                        <div class="input-group">
+                            <label>Lower Limit = p̂ - (Z × SE)</label>
+                            <input type="text" id="lowerLimitInput" placeholder="0.XXXX">
+                        </div>
+                        <div class="input-group">
+                            <label>Upper Limit = p̂ + (Z × SE)</label>
+                            <input type="text" id="upperLimitInput" placeholder="0.XXXX">
+                        </div>
+                        <button id="submitStep4">Calculate & Reveal</button>
+                        <div id="step4Error" class="error-message"></div>
+                    </div>
+                `;
+            }
+
+            renderResults() {
+                const lowerLimit = this.userAnswers.lowerLimit;
+                const upperLimit = this.userAnswers.upperLimit;
+                const captured = this.trueProportion >= lowerLimit && this.trueProportion <= upperLimit;
+
+                // Calculate positions for visualization
+                const minVal = Math.max(0, Math.min(lowerLimit, this.trueProportion) - 0.1);
+                const maxVal = Math.min(1, Math.max(upperLimit, this.trueProportion) + 0.1);
+                const range = maxVal - minVal;
+
+                const lowerPercent = ((lowerLimit - minVal) / range) * 100;
+                const upperPercent = ((upperLimit - minVal) / range) * 100;
+                const truePercent = ((this.trueProportion - minVal) / range) * 100;
+
+                return `
+                    <div class="result-box ${captured ? 'success' : 'miss'}">
+                        ${captured ? '🎉 SUCCESS!' : '❌ MISSED'}
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="font-size: 20px; font-weight: bold; color: #000000;">
+                            π = ${this.trueProportion.toFixed(3)}
+                        </div>
+                    </div>
+
+                    <div class="number-line-container">
+                        <h3 style="text-align: center; color: #000000; margin-bottom: 20px;">
+                            Your Confidence Interval
+                        </h3>
+                        <div class="number-line">
+                            <div class="line"></div>
+                            <div class="tick" style="left: 50%"></div>
+                            <div class="tick-label" style="left: 50%">${((minVal + maxVal) / 2).toFixed(2)}</div>
+                            
+                            <div class="interval-bar" style="left: ${lowerPercent}%; width: ${upperPercent - lowerPercent}%">
+                                <div style="position: absolute; top: -25px; left: 0; font-size: 11px; color: #000000; transform: translateX(-50%);">
+                                    ${lowerLimit.toFixed(3)}
+                                </div>
+                                <div style="position: absolute; top: -25px; right: 0; font-size: 11px; color: #000000; transform: translateX(50%);">
+                                    ${upperLimit.toFixed(3)}
+                                </div>
+                            </div>
+                            
+                            <div class="true-value-line" style="left: ${truePercent}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="educational-note">
+                        <strong>Understanding the Result:</strong><br><br>
+                        ${captured ? 
+                            'Your confidence interval captured the true population proportion! This is what should happen about 90% of the time.' :
+                            'Your confidence interval did not capture the true population proportion. This happens about 10% of the time due to random sampling variation.'}
+                        <br><br>
+                        <strong>Important Note:</strong> In repeated sampling, 90% of calculated intervals will contain the true parameter. 10% will fail just by random chance. This is the nature of confidence intervals!
+                    </div>
+
+                    <div style="text-align: center;">
+                        <button id="repeat100" style="font-size: 18px; padding: 15px 30px;">Repeat 100 Times</button>
+                    </div>
+                `;
+            }
+
+            renderSimulation() {
+                // Generate 100 samples and their CIs
+                const samples = [];
+                let captureCount = 0;
+
+                for (let i = 0; i < 100; i++) {
+                    // Generate new sample with same true proportion
+                    const sample = [];
+                    for (let j = 0; j < this.n; j++) {
+                        sample.push(Math.random() < this.trueProportion ? 1 : 0);
+                    }
+                    
+                    const successes = sample.filter(x => x === 1).length;
+                    const p = successes / this.n;
+                    const se = Math.sqrt((p * (1 - p)) / this.n);
+                    const z = 1.645;
+                    const lower = p - (z * se);
+                    const upper = p + (z * se);
+                    const captured = this.trueProportion >= lower && this.trueProportion <= upper;
+                    
+                    if (captured) captureCount++;
+                    
+                    samples.push({ lower, upper, captured });
+                }
+
+                const capturePercentage = (captureCount / 100 * 100).toFixed(1);
+
+                // Calculate visualization range
+                const allLowers = samples.map(s => s.lower);
+                const allUppers = samples.map(s => s.upper);
+                const minVal = Math.max(0, Math.min(...allLowers, this.trueProportion) - 0.05);
+                const maxVal = Math.min(1, Math.max(...allUppers, this.trueProportion) + 0.05);
+                const range = maxVal - minVal;
+
+                let html = `
+                    <div style="text-align: center; margin: 30px 0;">
+                        <h2 style="color: #000000; margin-bottom: 10px;">100 Confidence Intervals</h2>
+                        <div style="font-size: 18px; font-weight: bold; color: #000000; margin-bottom: 20px;">
+                            π = ${this.trueProportion.toFixed(3)}
+                        </div>
+                    </div>
+
+                    <div class="simulation-container">
+                        <div class="simulation-grid" id="simulationGrid">
+                `;
+
+                // Create empty rows that will be filled with animation
+                for (let i = 0; i < 100; i++) {
+                    html += `<div class="ci-row" id="ciRow${i}"></div>`;
+                }
+
+                const truePercent = ((this.trueProportion - minVal) / range) * 100;
+
+                html += `
+                        </div>
+                        <div class="true-line-vertical" style="left: ${truePercent}%;"></div>
+                    </div>
+
+                    <div class="educational-note" id="resultsNote" style="display: none;">
+                        <strong>Simulation Results:</strong><br><br>
+                        We can see that <strong><span id="captureCountDisplay">${captureCount}</span></strong> confidence intervals (shown in <span style="color: #4CAF50; font-weight: bold;">green</span>) 
+                        contain the true population proportion out of 100. This is <strong><span id="capturePercentDisplay">${capturePercentage}</span>%</strong>, which is close to the theoretical value of 90%.
+                        <br><br>
+                        The <strong><span id="missCountDisplay">${100 - captureCount}</span></strong> intervals shown in <span style="color: #d32f2f; font-weight: bold;">red</span> failed to capture 
+                        the true parameter due to random sampling variation.
+                        <br><br>
+                        <strong>Important:</strong> If we were to repeat this simulation infinitely many times, exactly 90% of the confidence intervals 
+                        would contain the true population proportion. This is the fundamental interpretation of a confidence level!
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;" id="newGameButton" style="display: none;">
+                        <button id="playAgain" style="font-size: 18px; padding: 15px 30px;">Start New Game</button>
+                    </div>
+                `;
+
+                // Store samples for animation
+                this.simulationSamples = samples;
+                this.simulationRange = { minVal, maxVal, range };
+
+                return html;
+            }
+
+            animateSimulation() {
+                let index = 0;
+                let captureCount = 0;
+                const samples = this.simulationSamples;
+                const { minVal, range } = this.simulationRange;
+
+                const animateNext = () => {
+                    if (index >= 100) {
+                        // Animation complete, show results
+                        document.getElementById('resultsNote').style.display = 'block';
+                        document.getElementById('newGameButton').style.display = 'block';
+                        return;
+                    }
+
+                    const s = samples[index];
+                    const lowerPercent = ((s.lower - minVal) / range) * 100;
+                    const upperPercent = ((s.upper - minVal) / range) * 100;
+                    const color = s.captured ? '#4CAF50' : '#d32f2f';
+                    
+                    if (s.captured) captureCount++;
+
+                    const row = document.getElementById(`ciRow${index}`);
+                    row.innerHTML = `<div class="ci-bar ci-bar-animated" style="left: ${lowerPercent}%; width: ${upperPercent - lowerPercent}%; background: ${color};"></div>`;
+
+                    // Update live count
+                    const capturePercentage = (captureCount / (index + 1) * 100).toFixed(1);
+                    if (document.getElementById('captureCountDisplay')) {
+                        document.getElementById('captureCountDisplay').textContent = captureCount;
+                        document.getElementById('capturePercentDisplay').textContent = capturePercentage;
+                        document.getElementById('missCountDisplay').textContent = (index + 1) - captureCount;
+                    }
+
+                    index++;
+                    setTimeout(animateNext, 50); // 50ms delay between intervals
+                };
+
+                animateNext();
+            }
+
+            attachEventListeners() {
+                // Step 1
+                const submitStep1 = document.getElementById('submitStep1');
+                if (submitStep1) {
+                    submitStep1.addEventListener('click', () => this.checkStep1());
+                    document.getElementById('samplePropInput')?.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.checkStep1();
+                    });
+                }
+
+                // Step 2
+                const submitStep2 = document.getElementById('submitStep2');
+                if (submitStep2) {
+                    submitStep2.addEventListener('click', () => this.checkStep2());
+                    document.getElementById('criticalValueInput')?.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.checkStep2();
+                    });
+                }
+
+                const hintStep2 = document.getElementById('hintStep2');
+                if (hintStep2) {
+                    hintStep2.addEventListener('click', () => {
+                        document.getElementById('hintStep2Text').classList.toggle('visible');
+                    });
+                }
+
+                // Step 3
+                const submitStep3 = document.getElementById('submitStep3');
+                if (submitStep3) {
+                    submitStep3.addEventListener('click', () => this.checkStep3());
+                    document.getElementById('standardErrorInput')?.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.checkStep3();
+                    });
+                }
+
+                const hintStep3 = document.getElementById('hintStep3');
+                if (hintStep3) {
+                    hintStep3.addEventListener('click', () => {
+                        document.getElementById('hintStep3Text').classList.toggle('visible');
+                    });
+                }
+
+                // Step 4
+                const submitStep4 = document.getElementById('submitStep4');
+                if (submitStep4) {
+                    submitStep4.addEventListener('click', () => this.checkStep4());
+                }
+
+                // Repeat 100 Times
+                const repeat100 = document.getElementById('repeat100');
+                if (repeat100) {
+                    repeat100.addEventListener('click', () => {
+                        this.currentStep = 6;
+                        this.render();
+                        // Start animation after render
+                        setTimeout(() => this.animateSimulation(), 100);
+                    });
+                }
+
+                // Play Again
+                const playAgain = document.getElementById('playAgain');
+                if (playAgain) {
+                    playAgain.addEventListener('click', () => this.init());
+                }
+            }
+
+            checkStep1() {
+                const input = document.getElementById('samplePropInput').value.trim();
+                const userValue = parseFloat(input);
+                const error = document.getElementById('step1Error');
+
+                if (isNaN(userValue)) {
+                    error.textContent = 'Please enter a valid number.';
+                    return;
+                }
+
+                if (Math.abs(userValue - this.sampleProportion) < 0.001) {
+                    this.userAnswers.sampleProp = this.sampleProportion.toFixed(2);
+                    this.currentStep = 2;
+                    this.render();
+                } else {
+                    error.textContent = 'Not quite. Check your calculation: successes / sample size.';
+                }
+            }
+
+            checkStep2() {
+                const input = document.getElementById('criticalValueInput').value.trim();
+                const userValue = parseFloat(input);
+                const error = document.getElementById('step2Error');
+
+                if (isNaN(userValue)) {
+                    error.textContent = 'Please enter a valid number.';
+                    return;
+                }
+
+                // Accept 1.64, 1.645, or 1.65
+                if (userValue >= 1.64 && userValue <= 1.65) {
+                    this.userAnswers.criticalValue = userValue.toFixed(3);
+                    this.currentStep = 3;
+                    this.render();
+                } else {
+                    error.textContent = 'Not quite. For 90% confidence, Z ≈ 1.645. Check the hint!';
+                }
+            }
+
+            checkStep3() {
+                const input = document.getElementById('standardErrorInput').value.trim();
+                const userValue = parseFloat(input);
+                const error = document.getElementById('step3Error');
+
+                if (isNaN(userValue)) {
+                    error.textContent = 'Please enter a valid number.';
+                    return;
+                }
+
+                const correctSE = Math.sqrt((this.sampleProportion * (1 - this.sampleProportion)) / this.n);
+
+                if (Math.abs(userValue - correctSE) < 0.005) {
+                    this.userAnswers.standardError = userValue;
+                    this.currentStep = 4;
+                    this.render();
+                } else {
+                    error.textContent = 'Not quite. Check your formula: SE = √[p̂(1-p̂)/n]. Use your sample proportion from Step 1.';
+                }
+            }
+
+            checkStep4() {
+                const lowerInput = document.getElementById('lowerLimitInput').value.trim();
+                const upperInput = document.getElementById('upperLimitInput').value.trim();
+                const error = document.getElementById('step4Error');
+
+                const lowerValue = parseFloat(lowerInput);
+                const upperValue = parseFloat(upperInput);
+
+                if (isNaN(lowerValue) || isNaN(upperValue)) {
+                    error.textContent = 'Please enter valid numbers for both limits.';
+                    return;
+                }
+
+                const z = parseFloat(this.userAnswers.criticalValue);
+                const se = this.userAnswers.standardError;
+                const marginOfError = z * se;
+
+                const correctLower = this.sampleProportion - marginOfError;
+                const correctUpper = this.sampleProportion + marginOfError;
+
+                const lowerOK = Math.abs(lowerValue - correctLower) < 0.01;
+                const upperOK = Math.abs(upperValue - correctUpper) < 0.01;
+
+                if (lowerOK && upperOK) {
+                    this.userAnswers.lowerLimit = lowerValue;
+                    this.userAnswers.upperLimit = upperValue;
+                    this.currentStep = 5;
+                    this.render();
+                } else {
+                    error.textContent = 'Not quite. Remember: Limit = p̂ ± (Z × SE). Check your arithmetic!';
+                }
+            }
+        }
+
+        // Initialize the game
+        const game = new ConfidenceIntervalGame();
+    </script>
+</body>
+</html>
